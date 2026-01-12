@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "questions": [
+    {
+      "id": "lf_fb_001",
+      "type": "fill_blank",
+      "question": "The loss function for regression is commonly ___ (acronym).",
+      "answer": "MSE",
+      "alternatives": ["Mean Squared Error", "mean squared error"],
+      "explanation": "MSE = mean of squared errors. Standard for regression tasks.",
+      "difficulty": 1,
+      "tags": ["regression", "mse"]
+    },
+    {
+      "id": "lf_fb_002",
+      "type": "fill_blank",
+      "question": "For binary classification, we typically use ___ loss.",
+      "answer": "binary cross-entropy",
+      "alternatives": ["binary crossentropy", "log loss", "BCE"],
+      "explanation": "Binary cross-entropy (BCE) with sigmoid activation is standard for binary classification.",
+      "difficulty": 1,
+      "tags": ["classification", "binary"]
+    },
+    {
+      "id": "lf_fb_003",
+      "type": "fill_blank",
+      "question": "Cross-entropy loss measures the difference between ___ distributions.",
+      "answer": "probability",
+      "alternatives": ["probability distributions", "two probability"],
+      "explanation": "Cross-entropy quantifies divergence between true distribution and predicted distribution.",
+      "difficulty": 2,
+      "tags": ["cross_entropy", "theory"]
+    },
+    {
+      "id": "lf_fb_004",
+      "type": "fill_blank",
+      "question": "During training, we aim to ___ the loss function.",
+      "answer": "minimize",
+      "alternatives": ["reduce", "decrease", "lower"],
+      "explanation": "Minimize loss = improve predictions. Gradient descent moves in direction that reduces loss.",
+      "difficulty": 1,
+      "tags": ["optimization", "goal"]
+    },
+    {
+      "id": "lf_fb_005",
+      "type": "fill_blank",
+      "question": "MAE is more ___ to outliers than MSE.",
+      "answer": "robust",
+      "alternatives": ["resistant", "tolerant", "resilient"],
+      "explanation": "MAE uses absolute errors (linear), MSE squares errors (quadratic). MAE less affected by outliers.",
+      "difficulty": 2,
+      "tags": ["mae", "outliers"]
+    }
+  ]
+}

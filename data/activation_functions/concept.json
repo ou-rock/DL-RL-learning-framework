@@ -1,0 +1,15 @@
+{
+  "name": "Activation Functions",
+  "slug": "activation_functions",
+  "topic": "neural_networks",
+  "difficulty": "beginner",
+  "status": "complete",
+  "prerequisites": [],
+  "description": "Non-linear functions applied to neuron outputs that enable neural networks to learn complex patterns. Include ReLU, sigmoid, tanh, and others.",
+  "materials": {
+    "explanation": "",
+    "code_examples": []
+  },
+  "estimated_time_minutes": 30,
+  "tags": ["neural_networks", "non-linearity", "fundamentals"]
+}

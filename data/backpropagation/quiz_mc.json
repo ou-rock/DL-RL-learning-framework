@@ -1,0 +1,155 @@
+{
+  "version": "1.0",
+  "questions": [
+    {
+      "id": "bp_mc_001",
+      "type": "multiple_choice",
+      "question": "What mathematical rule makes backpropagation possible?",
+      "options": [
+        "Product rule",
+        "Chain rule",
+        "Power rule",
+        "Quotient rule"
+      ],
+      "correct_index": 1,
+      "explanation": "Chain rule allows us to decompose complex derivatives: dL/dw = dL/dy × dy/dx × dx/dw.",
+      "difficulty": 2,
+      "tags": ["chain_rule", "calculus"]
+    },
+    {
+      "id": "bp_mc_002",
+      "type": "multiple_choice",
+      "question": "Why is it called 'backpropagation'?",
+      "options": [
+        "It goes back in time",
+        "It propagates errors backward from output to input",
+        "It backtracks when wrong",
+        "It's the reverse of forward propagation"
+      ],
+      "correct_index": 1,
+      "explanation": "Forward pass computes outputs. Backward pass computes gradients by propagating errors from output layers back to input layers.",
+      "difficulty": 1,
+      "tags": ["terminology", "direction"]
+    },
+    {
+      "id": "bp_mc_003",
+      "type": "multiple_choice",
+      "question": "During backpropagation, what do we compute for each weight?",
+      "options": [
+        "The loss value",
+        "The gradient of loss with respect to that weight",
+        "The activation value",
+        "The learning rate"
+      ],
+      "correct_index": 1,
+      "explanation": "Backpropagation computes ∂L/∂w for every weight, telling us how to adjust each weight to reduce loss.",
+      "difficulty": 1,
+      "tags": ["gradients", "weights"]
+    },
+    {
+      "id": "bp_mc_004",
+      "type": "multiple_choice",
+      "question": "What happens in the forward pass?",
+      "options": [
+        "Gradients are computed",
+        "Weights are updated",
+        "Activations are computed layer by layer from input to output",
+        "Loss is minimized"
+      ],
+      "correct_index": 2,
+      "explanation": "Forward pass: input → layer 1 → layer 2 → ... → output. We compute and cache activations needed for backward pass.",
+      "difficulty": 1,
+      "tags": ["forward_pass", "activations"]
+    },
+    {
+      "id": "bp_mc_005",
+      "type": "multiple_choice",
+      "question": "What is the computational advantage of backpropagation?",
+      "options": [
+        "It doesn't require derivatives",
+        "It computes all gradients in one backward pass (O(n) complexity)",
+        "It uses less memory than other methods",
+        "It's faster than forward propagation"
+      ],
+      "correct_index": 1,
+      "explanation": "Backprop computes all gradients efficiently in O(n) time using chain rule, versus O(n²) for naive approaches.",
+      "difficulty": 2,
+      "tags": ["efficiency", "computational_graph"]
+    },
+    {
+      "id": "bp_mc_006",
+      "type": "multiple_choice",
+      "question": "What information must be stored during the forward pass for backpropagation?",
+      "options": [
+        "Only the final output",
+        "Activations and intermediate values from each layer",
+        "Only the gradients",
+        "Only the loss value"
+      ],
+      "correct_index": 1,
+      "explanation": "We cache activations, pre-activations, and intermediate values needed to compute gradients during backward pass.",
+      "difficulty": 2,
+      "tags": ["caching", "memory"]
+    },
+    {
+      "id": "bp_mc_007",
+      "type": "multiple_choice",
+      "question": "What is the gradient of a layer's output with respect to its input called?",
+      "options": [
+        "Forward gradient",
+        "Local gradient or Jacobian",
+        "Loss gradient",
+        "Weight gradient"
+      ],
+      "correct_index": 1,
+      "explanation": "Local gradient (∂output/∂input) describes how the layer's output changes with its input. Chain rule multiplies these.",
+      "difficulty": 2,
+      "tags": ["local_gradient", "jacobian"]
+    },
+    {
+      "id": "bp_mc_008",
+      "type": "multiple_choice",
+      "question": "What problem does backpropagation solve?",
+      "options": [
+        "Overfitting",
+        "Efficiently computing gradients for all parameters",
+        "Choosing optimal architecture",
+        "Preventing vanishing gradients"
+      ],
+      "correct_index": 1,
+      "explanation": "Backprop solves the gradient computation problem. Vanishing gradients and overfitting are separate challenges.",
+      "difficulty": 1,
+      "tags": ["purpose", "gradient_computation"]
+    },
+    {
+      "id": "bp_mc_009",
+      "type": "multiple_choice",
+      "question": "In a 3-layer network, where does backpropagation start?",
+      "options": [
+        "Input layer",
+        "First hidden layer",
+        "Output layer (compute dL/dy)",
+        "Random layer"
+      ],
+      "correct_index": 2,
+      "explanation": "Backprop starts at output where loss is computed (dL/dy), then propagates back: output → hidden → input.",
+      "difficulty": 1,
+      "tags": ["order", "backward_pass"]
+    },
+    {
+      "id": "bp_mc_010",
+      "type": "multiple_choice",
+      "question": "What is 'automatic differentiation' in modern deep learning frameworks?",
+      "options": [
+        "Manual gradient computation",
+        "Automated backpropagation by tracking computational graph",
+        "Numerical gradient approximation",
+        "Symbolic differentiation"
+      ],
+      "correct_index": 1,
+      "explanation": "Frameworks like PyTorch/TensorFlow auto-build computational graphs and apply backprop automatically via autograd.",
+      "difficulty": 2,
+      "tags": ["autograd", "frameworks"]
+    }
+  ]
+}

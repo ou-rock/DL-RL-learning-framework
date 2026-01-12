@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "questions": [
+    {"id": "af_fb_001", "type": "fill_blank", "question": "The most commonly used activation function in modern deep learning is ___.", "answer": "ReLU", "alternatives": ["Rectified Linear Unit", "relu"], "explanation": "ReLU(x) = max(0,x) is the default choice for hidden layers due to simplicity and avoiding vanishing gradients.", "difficulty": 1, "tags": ["relu", "popular"]},
+    {"id": "af_fb_002", "type": "fill_blank", "question": "Activation functions introduce ___ into neural networks.", "answer": "non-linearity", "alternatives": ["nonlinearity", "non-linear behavior"], "explanation": "Without non-linearity, stacked linear layers would collapse to single linear transformation.", "difficulty": 1, "tags": ["purpose", "theory"]},
+    {"id": "af_fb_003", "type": "fill_blank", "question": "The sigmoid function outputs values between ___ and ___.", "answer": "0 and 1", "alternatives": ["0 1", "zero one", "0, 1"], "explanation": "Sigmoid σ(x) = 1/(1+e^-x) squashes inputs to (0,1) range, useful for probabilities.", "difficulty": 1, "tags": ["sigmoid", "range"]},
+    {"id": "af_fb_004", "type": "fill_blank", "question": "ReLU helps avoid the ___ gradient problem.", "answer": "vanishing", "alternatives": ["vanishing gradient"], "explanation": "ReLU gradient is 1 for x>0, preventing gradients from shrinking in deep networks.", "difficulty": 2, "tags": ["relu", "vanishing_gradient"]},
+    {"id": "af_fb_005", "type": "fill_blank", "question": "For multi-class classification, the output layer typically uses ___ activation.", "answer": "softmax", "alternatives": ["soft max"], "explanation": "Softmax converts K logits into probability distribution (sums to 1) over K classes.", "difficulty": 1, "tags": ["softmax", "classification"]}
+  ]
+}

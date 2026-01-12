@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "questions": [
+    {
+      "id": "[concept]_mc_001",
+      "type": "multiple_choice",
+      "question": "[Question text]",
+      "options": [
+        "[Option A]",
+        "[Option B]",
+        "[Option C]",
+        "[Option D]"
+      ],
+      "correct_index": 0,
+      "explanation": "[Why this answer is correct]",
+      "difficulty": 1,
+      "tags": ["tag1", "tag2"]
+    }
+  ]
+}

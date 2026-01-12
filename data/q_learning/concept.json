@@ -1,0 +1,15 @@
+{
+  "name": "Q-Learning",
+  "slug": "q_learning",
+  "topic": "reinforcement_learning",
+  "difficulty": "intermediate",
+  "status": "complete",
+  "prerequisites": [],
+  "description": "Model-free reinforcement learning algorithm that learns optimal action-value function (Q-function) through experience. Foundation of many RL methods including DQN.",
+  "materials": {
+    "explanation": "",
+    "code_examples": []
+  },
+  "estimated_time_minutes": 45,
+  "tags": ["reinforcement_learning", "value_based", "model_free"]
+}

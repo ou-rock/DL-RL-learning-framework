@@ -1,0 +1,15 @@
+{
+  "name": "Loss Functions",
+  "slug": "loss_functions",
+  "topic": "neural_networks",
+  "difficulty": "beginner",
+  "status": "complete",
+  "prerequisites": [],
+  "description": "Mathematical functions that quantify the difference between predicted and actual outputs. Guide neural network training by providing optimization objectives.",
+  "materials": {
+    "explanation": "",
+    "code_examples": []
+  },
+  "estimated_time_minutes": 35,
+  "tags": ["neural_networks", "training", "optimization"]
+}

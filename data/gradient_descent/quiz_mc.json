@@ -1,0 +1,155 @@
+{
+  "version": "1.0",
+  "questions": [
+    {
+      "id": "gd_mc_001",
+      "type": "multiple_choice",
+      "question": "What direction does gradient descent move in parameter space?",
+      "options": [
+        "Direction of steepest increase",
+        "Direction of steepest decrease",
+        "Random direction",
+        "Perpendicular to the gradient"
+      ],
+      "correct_index": 1,
+      "explanation": "Gradient descent moves in the negative gradient direction (steepest decrease) to minimize the loss function.",
+      "difficulty": 1,
+      "tags": ["direction", "gradient"]
+    },
+    {
+      "id": "gd_mc_002",
+      "type": "multiple_choice",
+      "question": "What happens if the learning rate is too large?",
+      "options": [
+        "Convergence is slower but guaranteed",
+        "The algorithm may oscillate or diverge",
+        "Better generalization is achieved",
+        "Training becomes faster and more stable"
+      ],
+      "correct_index": 1,
+      "explanation": "Too large learning rate causes overshooting, leading to oscillation around the minimum or divergence away from it.",
+      "difficulty": 2,
+      "tags": ["learning_rate", "hyperparameters"]
+    },
+    {
+      "id": "gd_mc_003",
+      "type": "multiple_choice",
+      "question": "What is the purpose of the learning rate α in gradient descent?",
+      "options": [
+        "To increase the gradient magnitude",
+        "To control the step size of parameter updates",
+        "To add randomness to the optimization",
+        "To regularize the model"
+      ],
+      "correct_index": 1,
+      "explanation": "Learning rate α controls how large each step is. θ = θ - α∇J(θ). Too small = slow convergence, too large = instability.",
+      "difficulty": 1,
+      "tags": ["learning_rate", "parameters"]
+    },
+    {
+      "id": "gd_mc_004",
+      "type": "multiple_choice",
+      "question": "Gradient descent is guaranteed to find the global minimum when:",
+      "options": [
+        "The loss function is convex",
+        "The learning rate is very small",
+        "The model has many parameters",
+        "We use momentum"
+      ],
+      "correct_index": 0,
+      "explanation": "For convex functions, any local minimum is also the global minimum, so gradient descent will find it. For non-convex functions, it may get stuck in local minima.",
+      "difficulty": 2,
+      "tags": ["convexity", "convergence"]
+    },
+    {
+      "id": "gd_mc_005",
+      "type": "multiple_choice",
+      "question": "How do we know when to stop gradient descent?",
+      "options": [
+        "When loss reaches exactly zero",
+        "After a fixed number of iterations",
+        "When gradient magnitude is close to zero or loss stops decreasing",
+        "When learning rate becomes zero"
+      ],
+      "correct_index": 2,
+      "explanation": "Convergence criteria: gradient ≈ 0 (at minimum) or loss stops improving. We rarely reach exact zero loss.",
+      "difficulty": 2,
+      "tags": ["convergence", "stopping_criteria"]
+    },
+    {
+      "id": "gd_mc_006",
+      "type": "multiple_choice",
+      "question": "What does the gradient ∇J(θ) represent?",
+      "options": [
+        "The minimum value of the loss",
+        "The direction and magnitude of steepest increase",
+        "The learning rate",
+        "The number of iterations needed"
+      ],
+      "correct_index": 1,
+      "explanation": "Gradient is a vector pointing in direction of steepest increase. Its magnitude indicates how steep the slope is.",
+      "difficulty": 1,
+      "tags": ["gradient", "calculus"]
+    },
+    {
+      "id": "gd_mc_007",
+      "type": "multiple_choice",
+      "question": "Why is it called 'gradient descent' and not 'gradient ascent'?",
+      "options": [
+        "We want to minimize loss (go down the slope)",
+        "We want to maximize accuracy (go up the slope)",
+        "It's just convention, both work the same",
+        "Descent is faster than ascent"
+      ],
+      "correct_index": 0,
+      "explanation": "We minimize loss by going down (descending) the loss surface. Gradient ascent would maximize the function instead.",
+      "difficulty": 1,
+      "tags": ["terminology", "optimization"]
+    },
+    {
+      "id": "gd_mc_008",
+      "type": "multiple_choice",
+      "question": "In batch gradient descent, what is updated after each iteration?",
+      "options": [
+        "Only one randomly selected parameter",
+        "All parameters using gradient computed on entire dataset",
+        "All parameters using gradient from one sample",
+        "The learning rate"
+      ],
+      "correct_index": 1,
+      "explanation": "Batch GD computes gradient using ALL training data, then updates all parameters. Contrast with SGD (one sample) or mini-batch (subset).",
+      "difficulty": 2,
+      "tags": ["batch_gd", "variants"]
+    },
+    {
+      "id": "gd_mc_009",
+      "type": "multiple_choice",
+      "question": "What is the main disadvantage of batch gradient descent?",
+      "options": [
+        "Less accurate than other methods",
+        "Cannot escape local minima",
+        "Computationally expensive for large datasets",
+        "Requires tuning many hyperparameters"
+      ],
+      "correct_index": 2,
+      "explanation": "Batch GD must process entire dataset per iteration, which is slow and memory-intensive for large datasets (millions of examples).",
+      "difficulty": 2,
+      "tags": ["batch_gd", "computational_cost"]
+    },
+    {
+      "id": "gd_mc_010",
+      "type": "multiple_choice",
+      "question": "What happens at a local minimum in gradient descent?",
+      "options": [
+        "Gradient becomes zero and updates stop",
+        "Loss becomes zero",
+        "Learning rate increases automatically",
+        "Algorithm restarts from random position"
+      ],
+      "correct_index": 0,
+      "explanation": "At local minimum, gradient = 0, so θ = θ - α×0 = θ (no change). Algorithm stops making progress unless we add momentum or noise.",
+      "difficulty": 2,
+      "tags": ["local_minimum", "gradient"]
+    }
+  ]
+}

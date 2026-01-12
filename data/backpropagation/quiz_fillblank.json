@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "questions": [
+    {
+      "id": "bp_fb_001",
+      "type": "fill_blank",
+      "question": "Backpropagation uses the ___ rule from calculus to compute gradients.",
+      "answer": "chain",
+      "alternatives": ["chain rule"],
+      "explanation": "Chain rule: dL/dw = dL/dy × dy/dx × dx/dw. This allows decomposing complex derivatives into simple steps.",
+      "difficulty": 1,
+      "tags": ["chain_rule", "calculus"]
+    },
+    {
+      "id": "bp_fb_002",
+      "type": "fill_blank",
+      "question": "In backpropagation, errors are propagated from ___ layer to ___ layer.",
+      "answer": "output to input",
+      "alternatives": ["output to input layer", "last to first", "end to beginning"],
+      "explanation": "Backward pass: output → hidden layers → input. We compute gradients in reverse order of forward pass.",
+      "difficulty": 1,
+      "tags": ["direction", "flow"]
+    },
+    {
+      "id": "bp_fb_003",
+      "type": "fill_blank",
+      "question": "The computational complexity of backpropagation is ___ where n is the number of parameters.",
+      "answer": "O(n)",
+      "alternatives": ["linear", "O(n) time", "proportional to n"],
+      "explanation": "Backprop is O(n) - one backward pass computes all gradients. Naive approaches would be O(n²).",
+      "difficulty": 2,
+      "tags": ["complexity", "efficiency"]
+    },
+    {
+      "id": "bp_fb_004",
+      "type": "fill_blank",
+      "question": "During forward pass, we must cache ___ values needed for the backward pass.",
+      "answer": "activation",
+      "alternatives": ["activations", "intermediate", "intermediate values", "layer outputs"],
+      "explanation": "We store activations, pre-activations (z = Wx + b), and intermediate computations for gradient calculation.",
+      "difficulty": 2,
+      "tags": ["caching", "forward_pass"]
+    },
+    {
+      "id": "bp_fb_005",
+      "type": "fill_blank",
+      "question": "Modern deep learning frameworks use ___ differentiation to automate backpropagation.",
+      "answer": "automatic",
+      "alternatives": ["auto", "autograd", "automatic gradient"],
+      "explanation": "Automatic differentiation (autograd) builds computational graph and applies backprop automatically.",
+      "difficulty": 2,
+      "tags": ["autograd", "frameworks"]
+    }
+  ]
+}

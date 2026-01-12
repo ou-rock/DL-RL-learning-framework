@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "questions": [
+    {"id": "ql_fb_001", "type": "fill_blank", "question": "Q-learning is a ___ reinforcement learning algorithm.", "answer": "model-free", "alternatives": ["model free", "modelfree"], "explanation": "Model-free means it doesn't learn/use environment dynamics model. Learns from experience only.", "difficulty": 1, "tags": ["classification", "model_free"]},
+    {"id": "ql_fb_002", "type": "fill_blank", "question": "The Q-function Q(s,a) represents the expected ___ return.", "answer": "cumulative", "alternatives": ["total", "future", "discounted"], "explanation": "Q(s,a) = expected sum of discounted future rewards starting from state s, taking action a.", "difficulty": 1, "tags": ["q_function", "definition"]},
+    {"id": "ql_fb_003", "type": "fill_blank", "question": "Q-learning uses the ___ equation for updates.", "answer": "Bellman", "alternatives": ["Bellman equation", "Bellman optimality"], "explanation": "Bellman equation: Q(s,a) = r + γ max_a' Q(s',a'). Foundation of dynamic programming and RL.", "difficulty": 2, "tags": ["bellman", "theory"]},
+    {"id": "ql_fb_004", "type": "fill_blank", "question": "ε-greedy balances ___ and exploitation.", "answer": "exploration", "alternatives": ["explore"], "explanation": "With prob ε: explore (random action). With prob 1-ε: exploit (greedy action). Classic exploration strategy.", "difficulty": 1, "tags": ["exploration", "epsilon_greedy"]},
+    {"id": "ql_fb_005", "type": "fill_blank", "question": "Q-learning is ___ policy, meaning it learns about greedy policy while following exploratory policy.", "answer": "off", "alternatives": ["off-policy", "off policy"], "explanation": "Off-policy: behavior policy ≠ target policy. Learns optimal Q* while exploring. On-policy (SARSA): same policy.", "difficulty": 2, "tags": ["off_policy", "theory"]}
+  ]
+}

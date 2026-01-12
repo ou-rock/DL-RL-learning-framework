@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temp files
+tmpclaude-*
+*.tmp
+
+# User data (contains personal learning progress)
+user_data/
+
+# OS
+.DS_Store
+Thumbs.db

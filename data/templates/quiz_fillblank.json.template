@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "questions": [
+    {
+      "id": "[concept]_fb_001",
+      "type": "fill_blank",
+      "question": "[Question with ___ blank]",
+      "answer": "[correct answer]",
+      "alternatives": ["[alternative 1]", "[alternative 2]"],
+      "explanation": "[Explanation of the answer]",
+      "difficulty": 1,
+      "tags": ["tag1", "tag2"]
+    }
+  ]
+}

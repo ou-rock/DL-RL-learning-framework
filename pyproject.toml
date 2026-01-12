@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "learning-framework"
+version = "0.1.0"
+description = "Interactive DL/RL mastery framework"
+requires-python = ">=3.10"
+dependencies = [
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "numpy>=1.24.0",
+    "matplotlib>=3.7.0",
+    "pyyaml>=6.0",
+    "requests>=2.31.0",
+    "paramiko>=3.3.0",
+]
+
+[project.scripts]
+lf = "learning_framework.cli:cli"

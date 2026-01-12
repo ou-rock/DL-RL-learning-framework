@@ -1,0 +1,33 @@
+"""
+Visualization for [CONCEPT_NAME]
+
+Functions:
+- main_visualization(): Primary visualization (required)
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def main_visualization():
+    """[Brief description of what this visualization shows]
+    
+    Explain what insight this provides for understanding the concept.
+    """
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    # TODO: Add your visualization code here
+    
+    ax.set_title('[CONCEPT_NAME] Visualization', fontsize=14, fontweight='bold')
+    ax.set_xlabel('X axis')
+    ax.set_ylabel('Y axis')
+    ax.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    return fig
+
+
+if __name__ == '__main__':
+    # Test standalone
+    fig = main_visualization()
+    plt.show()

@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "concepts": {
+    "gradient_descent": {
+      "status": "complete",
+      "topic": "optimization",
+      "difficulty": "beginner"
+    },
+    "backpropagation": {
+      "status": "complete",
+      "topic": "neural_networks",
+      "difficulty": "intermediate"
+    },
+    "loss_functions": {
+      "status": "complete",
+      "topic": "neural_networks",
+      "difficulty": "beginner"
+    },
+    "activation_functions": {
+      "status": "complete",
+      "topic": "neural_networks",
+      "difficulty": "beginner"
+    },
+    "q_learning": {
+      "status": "complete",
+      "topic": "reinforcement_learning",
+      "difficulty": "intermediate"
+    }
+  },
+  "topics": {
+    "optimization": ["gradient_descent"],
+    "neural_networks": ["backpropagation", "loss_functions", "activation_functions"],
+    "reinforcement_learning": ["q_learning"]
+  }
+}

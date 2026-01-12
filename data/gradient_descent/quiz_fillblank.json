@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "questions": [
+    {
+      "id": "gd_fb_001",
+      "type": "fill_blank",
+      "question": "The gradient descent update rule is: θ = θ - α × ___",
+      "answer": "∇J(θ)",
+      "alternatives": ["gradient", "∇J", "grad J", "dJ/dθ"],
+      "explanation": "θ = θ - α∇J(θ) where α is learning rate and ∇J(θ) is the gradient of loss with respect to parameters.",
+      "difficulty": 1,
+      "tags": ["equation", "update_rule"]
+    },
+    {
+      "id": "gd_fb_002",
+      "type": "fill_blank",
+      "question": "Gradient descent is guaranteed to converge to global minimum for ___ functions.",
+      "answer": "convex",
+      "alternatives": ["convex functions"],
+      "explanation": "Convex functions have a single bowl-shaped minimum. Any local minimum is the global minimum.",
+      "difficulty": 2,
+      "tags": ["convexity", "convergence"]
+    },
+    {
+      "id": "gd_fb_003",
+      "type": "fill_blank",
+      "question": "The hyperparameter that controls step size in gradient descent is called the ___.",
+      "answer": "learning rate",
+      "alternatives": ["learning-rate", "step size", "α", "alpha"],
+      "explanation": "Learning rate (α) determines how big each update step is: θ = θ - α∇J(θ).",
+      "difficulty": 1,
+      "tags": ["hyperparameters", "learning_rate"]
+    },
+    {
+      "id": "gd_fb_004",
+      "type": "fill_blank",
+      "question": "If the gradient is zero, we are at a ___ of the loss function.",
+      "answer": "critical point",
+      "alternatives": ["stationary point", "minimum", "maximum", "extremum"],
+      "explanation": "∇J = 0 indicates a critical/stationary point (could be minimum, maximum, or saddle point).",
+      "difficulty": 2,
+      "tags": ["gradient", "critical_points"]
+    },
+    {
+      "id": "gd_fb_005",
+      "type": "fill_blank",
+      "question": "Gradient descent moves in the direction ___ to the gradient vector.",
+      "answer": "opposite",
+      "alternatives": ["negative", "reverse", "inverse", "contrary"],
+      "explanation": "We subtract the gradient (θ = θ - α∇J), moving opposite to gradient direction to go downhill.",
+      "difficulty": 1,
+      "tags": ["direction", "gradient"]
+    }
+  ]
+}

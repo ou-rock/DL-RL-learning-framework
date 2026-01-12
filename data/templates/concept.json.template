@@ -1,0 +1,15 @@
+{
+  "name": "[CONCEPT_NAME]",
+  "slug": "[concept_slug]",
+  "topic": "[topic]",
+  "difficulty": "[beginner|intermediate|advanced]",
+  "status": "skeleton",
+  "prerequisites": [],
+  "description": "[Brief description of what this concept is]",
+  "materials": {
+    "explanation": "",
+    "code_examples": []
+  },
+  "estimated_time_minutes": 30,
+  "tags": []
+}

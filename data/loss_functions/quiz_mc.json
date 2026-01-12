@@ -1,0 +1,155 @@
+{
+  "version": "1.0",
+  "questions": [
+    {
+      "id": "lf_mc_001",
+      "type": "multiple_choice",
+      "question": "What is the purpose of a loss function?",
+      "options": [
+        "To activate neurons",
+        "To measure how wrong the model's predictions are",
+        "To update weights",
+        "To prevent overfitting"
+      ],
+      "correct_index": 1,
+      "explanation": "Loss function quantifies prediction error. Lower loss = better predictions. We minimize loss during training.",
+      "difficulty": 1,
+      "tags": ["purpose", "training"]
+    },
+    {
+      "id": "lf_mc_002",
+      "type": "multiple_choice",
+      "question": "Which loss function is commonly used for binary classification?",
+      "options": [
+        "MSE",
+        "Binary Cross-Entropy",
+        "Hinge Loss",
+        "Huber Loss"
+      ],
+      "correct_index": 1,
+      "explanation": "Binary cross-entropy (log loss) is standard for binary classification (2 classes). Works with sigmoid output.",
+      "difficulty": 1,
+      "tags": ["classification", "binary"]
+    },
+    {
+      "id": "lf_mc_003",
+      "type": "multiple_choice",
+      "question": "Mean Squared Error (MSE) is most appropriate for:",
+      "options": [
+        "Multi-class classification",
+        "Regression tasks",
+        "Binary classification",
+        "Clustering"
+      ],
+      "correct_index": 1,
+      "explanation": "MSE = mean of squared errors. Perfect for regression (predicting continuous values).",
+      "difficulty": 1,
+      "tags": ["regression", "mse"]
+    },
+    {
+      "id": "lf_mc_004",
+      "type": "multiple_choice",
+      "question": "What does cross-entropy loss measure?",
+      "options": [
+        "Distance between vectors",
+        "Difference between probability distributions",
+        "Number of errors",
+        "Model complexity"
+      ],
+      "correct_index": 1,
+      "explanation": "Cross-entropy measures divergence between true distribution and predicted distribution.",
+      "difficulty": 2,
+      "tags": ["cross_entropy", "distributions"]
+    },
+    {
+      "id": "lf_mc_005",
+      "type": "multiple_choice",
+      "question": "For multi-class classification with K classes, which loss is standard?",
+      "options": [
+        "MSE",
+        "Binary Cross-Entropy",
+        "Categorical Cross-Entropy",
+        "MAE"
+      ],
+      "correct_index": 2,
+      "explanation": "Categorical cross-entropy for K classes with softmax output. Binary cross-entropy only for 2 classes.",
+      "difficulty": 1,
+      "tags": ["multiclass", "classification"]
+    },
+    {
+      "id": "lf_mc_006",
+      "type": "multiple_choice",
+      "question": "What happens if loss is zero?",
+      "options": [
+        "Model is overfitting",
+        "Perfect predictions (rarely achieved)",
+        "Model failed to train",
+        "Need more data"
+      ],
+      "correct_index": 1,
+      "explanation": "Loss = 0 means perfect predictions on training data. In practice, very rare and may indicate overfitting.",
+      "difficulty": 2,
+      "tags": ["loss_value", "interpretation"]
+    },
+    {
+      "id": "lf_mc_007",
+      "type": "multiple_choice",
+      "question": "Why use cross-entropy instead of MSE for classification?",
+      "options": [
+        "Faster to compute",
+        "Better gradient properties for classification",
+        "Uses less memory",
+        "Works with any activation"
+      ],
+      "correct_index": 1,
+      "explanation": "Cross-entropy + softmax has better gradients than MSE for classification. Avoids saturation issues.",
+      "difficulty": 2,
+      "tags": ["loss_choice", "gradients"]
+    },
+    {
+      "id": "lf_mc_008",
+      "type": "multiple_choice",
+      "question": "What is the formula for Mean Absolute Error (MAE)?",
+      "options": [
+        "mean of absolute differences",
+        "mean of squared differences",
+        "sum of differences",
+        "maximum absolute difference"
+      ],
+      "correct_index": 0,
+      "explanation": "MAE = mean of absolute errors. More robust to outliers than MSE (which squares errors).",
+      "difficulty": 1,
+      "tags": ["mae", "formulas"]
+    },
+    {
+      "id": "lf_mc_009",
+      "type": "multiple_choice",
+      "question": "Huber loss combines properties of:",
+      "options": [
+        "MSE and MAE",
+        "Cross-entropy and hinge",
+        "L1 and L2 regularization",
+        "Precision and recall"
+      ],
+      "correct_index": 0,
+      "explanation": "Huber loss is quadratic (MSE-like) for small errors, linear (MAE-like) for large errors. Robust to outliers.",
+      "difficulty": 2,
+      "tags": ["huber", "hybrid"]
+    },
+    {
+      "id": "lf_mc_010",
+      "type": "multiple_choice",
+      "question": "During training, we want to:",
+      "options": [
+        "Maximize the loss",
+        "Keep loss constant",
+        "Minimize the loss",
+        "Ignore the loss"
+      ],
+      "correct_index": 2,
+      "explanation": "Training = minimize loss. Lower loss = model predictions closer to true labels.",
+      "difficulty": 1,
+      "tags": ["optimization", "training"]
+    }
+  ]
+}

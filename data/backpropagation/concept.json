@@ -1,0 +1,15 @@
+{
+  "name": "Backpropagation",
+  "slug": "backpropagation",
+  "topic": "neural_networks",
+  "difficulty": "intermediate",
+  "status": "complete",
+  "prerequisites": ["gradient_descent"],
+  "description": "Algorithm for efficiently computing gradients in neural networks using the chain rule. Enables training of deep networks by propagating errors backward through layers.",
+  "materials": {
+    "explanation": "",
+    "code_examples": []
+  },
+  "estimated_time_minutes": 45,
+  "tags": ["neural_networks", "gradients", "training"]
+}
