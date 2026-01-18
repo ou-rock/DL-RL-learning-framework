@@ -41,10 +41,13 @@ def init_pool(min_conn: int = 1, max_conn: int = 10) -> bool:
         return False
 
     try:
+        # Connection options for Railway (handle cold starts)
         _connection_pool = pool.ThreadedConnectionPool(
             min_conn,
             max_conn,
-            database_url
+            database_url,
+            connect_timeout=10,  # 10 second connection timeout
+            options='-c statement_timeout=30000'  # 30 second query timeout
         )
         print(f"Database pool initialized (min={min_conn}, max={max_conn})")
         return True
