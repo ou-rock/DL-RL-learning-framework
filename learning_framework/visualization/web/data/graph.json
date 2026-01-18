@@ -1,0 +1,57 @@
+{
+  "nodes": [
+    {"id": "input_0", "label": "x₁", "type": "input", "x": 50, "y": 100},
+    {"id": "input_1", "label": "x₂", "type": "input", "x": 50, "y": 200},
+    {"id": "input_2", "label": "x₃", "type": "input", "x": 50, "y": 300},
+
+    {"id": "hidden_0_0", "label": "h₁", "type": "hidden", "x": 200, "y": 80},
+    {"id": "hidden_0_1", "label": "h₂", "type": "hidden", "x": 200, "y": 160},
+    {"id": "hidden_0_2", "label": "h₃", "type": "hidden", "x": 200, "y": 240},
+    {"id": "hidden_0_3", "label": "h₄", "type": "hidden", "x": 200, "y": 320},
+
+    {"id": "hidden_1_0", "label": "h₅", "type": "hidden", "x": 350, "y": 120},
+    {"id": "hidden_1_1", "label": "h₆", "type": "hidden", "x": 350, "y": 200},
+    {"id": "hidden_1_2", "label": "h₇", "type": "hidden", "x": 350, "y": 280},
+
+    {"id": "output_0", "label": "y₁", "type": "output", "x": 500, "y": 150},
+    {"id": "output_1", "label": "y₂", "type": "output", "x": 500, "y": 250}
+  ],
+  "edges": [
+    {"from": "input_0", "to": "hidden_0_0", "weight": 0.5},
+    {"from": "input_0", "to": "hidden_0_1", "weight": -0.3},
+    {"from": "input_0", "to": "hidden_0_2", "weight": 0.8},
+    {"from": "input_0", "to": "hidden_0_3", "weight": 0.2},
+    {"from": "input_1", "to": "hidden_0_0", "weight": -0.4},
+    {"from": "input_1", "to": "hidden_0_1", "weight": 0.6},
+    {"from": "input_1", "to": "hidden_0_2", "weight": 0.1},
+    {"from": "input_1", "to": "hidden_0_3", "weight": -0.7},
+    {"from": "input_2", "to": "hidden_0_0", "weight": 0.3},
+    {"from": "input_2", "to": "hidden_0_1", "weight": 0.4},
+    {"from": "input_2", "to": "hidden_0_2", "weight": -0.5},
+    {"from": "input_2", "to": "hidden_0_3", "weight": 0.9},
+
+    {"from": "hidden_0_0", "to": "hidden_1_0", "weight": 0.6},
+    {"from": "hidden_0_0", "to": "hidden_1_1", "weight": -0.2},
+    {"from": "hidden_0_0", "to": "hidden_1_2", "weight": 0.4},
+    {"from": "hidden_0_1", "to": "hidden_1_0", "weight": 0.3},
+    {"from": "hidden_0_1", "to": "hidden_1_1", "weight": 0.7},
+    {"from": "hidden_0_1", "to": "hidden_1_2", "weight": -0.5},
+    {"from": "hidden_0_2", "to": "hidden_1_0", "weight": -0.4},
+    {"from": "hidden_0_2", "to": "hidden_1_1", "weight": 0.5},
+    {"from": "hidden_0_2", "to": "hidden_1_2", "weight": 0.2},
+    {"from": "hidden_0_3", "to": "hidden_1_0", "weight": 0.8},
+    {"from": "hidden_0_3", "to": "hidden_1_1", "weight": -0.3},
+    {"from": "hidden_0_3", "to": "hidden_1_2", "weight": 0.6},
+
+    {"from": "hidden_1_0", "to": "output_0", "weight": 0.7},
+    {"from": "hidden_1_0", "to": "output_1", "weight": -0.4},
+    {"from": "hidden_1_1", "to": "output_0", "weight": 0.2},
+    {"from": "hidden_1_1", "to": "output_1", "weight": 0.8},
+    {"from": "hidden_1_2", "to": "output_0", "weight": -0.5},
+    {"from": "hidden_1_2", "to": "output_1", "weight": 0.3}
+  ],
+  "metadata": {
+    "title": "Feedforward Neural Network",
+    "description": "A simple 3-layer neural network with backpropagation visualization"
+  }
+}

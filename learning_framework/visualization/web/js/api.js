@@ -1,9 +1,12 @@
 /**
  * API client for communicating with visualization server
+ * Supports both live backend and static JSON fallback for Vercel deployment
  */
 class API {
     constructor(baseUrl = '') {
         this.baseUrl = baseUrl || window.location.origin;
+        this.useStatic = false; // Will be set to true if backend is unavailable
+        this.staticData = {};   // Cache for static JSON data
     }
 
     async fetchJSON(endpoint) {
@@ -14,21 +17,65 @@ class API {
         return response.json();
     }
 
+    async fetchStatic(path) {
+        if (this.staticData[path]) {
+            return this.staticData[path];
+        }
+        const response = await fetch(`${this.baseUrl}/data/${path}`);
+        if (!response.ok) {
+            throw new Error(`Static file not found: ${path}`);
+        }
+        const data = await response.json();
+        this.staticData[path] = data;
+        return data;
+    }
+
     async getConcepts() {
-        const data = await this.fetchJSON('/api/concepts');
+        try {
+            if (!this.useStatic) {
+                const data = await this.fetchJSON('/api/concepts');
+                return data.concepts || [];
+            }
+        } catch (e) {
+            console.log('Backend unavailable, using static data');
+            this.useStatic = true;
+        }
+        // Fallback to static JSON
+        const data = await this.fetchStatic('concepts.json');
         return data.concepts || [];
     }
 
     async getConceptDetail(slug) {
+        if (this.useStatic) {
+            // Return mock detail from concepts list
+            const data = await this.fetchStatic('concepts.json');
+            const concept = data.concepts.find(c => c.slug === slug);
+            return concept ? {
+                ...concept,
+                visualizations: ['computational_graph'],
+                has_quiz: true,
+                has_challenge: true
+            } : null;
+        }
         return this.fetchJSON(`/api/concept/${slug}`);
     }
 
     async getGraphData(concept = null) {
+        if (this.useStatic) {
+            return this.fetchStatic('graph.json');
+        }
         const endpoint = concept ? `/api/graph?concept=${concept}` : '/api/graph';
         return this.fetchJSON(endpoint);
     }
 
     async getVisualizationData(concept, vizName = 'main_visualization') {
+        if (this.useStatic) {
+            const graphData = await this.fetchStatic('graph.json');
+            return {
+                type: 'graph',
+                ...graphData
+            };
+        }
         return this.fetchJSON(`/api/viz/${concept}/${vizName}`);
     }
 }

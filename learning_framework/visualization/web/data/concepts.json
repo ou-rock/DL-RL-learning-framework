@@ -1,0 +1,40 @@
+{
+  "concepts": [
+    {
+      "slug": "backpropagation",
+      "name": "Backpropagation",
+      "topic": "Neural Networks",
+      "status": "complete"
+    },
+    {
+      "slug": "gradient_descent",
+      "name": "Gradient Descent",
+      "topic": "Optimization",
+      "status": "complete"
+    },
+    {
+      "slug": "sgd",
+      "name": "Stochastic Gradient Descent",
+      "topic": "Optimization",
+      "status": "complete"
+    },
+    {
+      "slug": "activation_functions",
+      "name": "Activation Functions",
+      "topic": "Neural Networks",
+      "status": "complete"
+    },
+    {
+      "slug": "loss_functions",
+      "name": "Loss Functions",
+      "topic": "Training",
+      "status": "complete"
+    },
+    {
+      "slug": "regularization",
+      "name": "Regularization",
+      "topic": "Training",
+      "status": "skeleton"
+    }
+  ]
+}
