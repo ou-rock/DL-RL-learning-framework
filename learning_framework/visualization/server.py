@@ -137,6 +137,55 @@ class VisualizationHandler(SimpleHTTPRequestHandler):
         except (json.JSONDecodeError, ValueError):
             return None
 
+    def _load_static_concepts(self):
+        """Load concepts from static JSON file when no data_provider"""
+        try:
+            static_file = Path(self.static_dir) / 'data' / 'concepts.json'
+            if static_file.exists():
+                with open(static_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    return data.get('concepts', [])
+        except Exception as e:
+            print(f"Failed to load static concepts: {e}")
+        return []
+
+    def _load_static_concept(self, slug: str):
+        """Load a specific concept from static JSON"""
+        try:
+            # Try concept-specific file first
+            concept_file = Path(self.static_dir) / 'data' / 'concepts' / f'{slug}.json'
+            if concept_file.exists():
+                with open(concept_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            # Fallback to concepts list
+            concepts = self._load_static_concepts()
+            for c in concepts:
+                if c.get('slug') == slug:
+                    return c
+        except Exception as e:
+            print(f"Failed to load static concept {slug}: {e}")
+        return None
+
+    def _load_static_graph(self, concept: str = None):
+        """Load graph data from static JSON"""
+        try:
+            # Try concept-specific graph first
+            if concept:
+                concept_file = Path(self.static_dir) / 'data' / 'concepts' / f'{concept}.json'
+                if concept_file.exists():
+                    with open(concept_file, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        if 'graph' in data:
+                            return data['graph']
+            # Fallback to default graph
+            graph_file = Path(self.static_dir) / 'data' / 'graph.json'
+            if graph_file.exists():
+                with open(graph_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception as e:
+            print(f"Failed to load static graph: {e}")
+        return {'nodes': [], 'edges': []}
+
     def _handle_concepts(self):
         """Return list of available concepts with user progress"""
         user_id = self._get_user_id()
@@ -144,7 +193,8 @@ class VisualizationHandler(SimpleHTTPRequestHandler):
         if self.data_provider:
             concepts = self.data_provider.get_concepts()
         else:
-            concepts = []
+            # Fallback: load from static JSON file
+            concepts = self._load_static_concepts()
 
         # Attach user progress if available
         progress_map = {}
@@ -165,12 +215,14 @@ class VisualizationHandler(SimpleHTTPRequestHandler):
         """Return concept detail with visualization info"""
         if self.data_provider:
             concept = self.data_provider.get_concept_detail(concept_slug)
-            if concept:
-                self._send_json(concept)
-            else:
-                self._send_json({'error': 'Concept not found'}, 404)
         else:
-            self._send_json({'error': 'Data provider not configured'}, 500)
+            # Fallback: load from static JSON
+            concept = self._load_static_concept(concept_slug)
+
+        if concept:
+            self._send_json(concept)
+        else:
+            self._send_json({'error': 'Concept not found'}, 404)
 
     def _handle_graph_data(self):
         """Return computational graph data for viewer"""
@@ -179,17 +231,22 @@ class VisualizationHandler(SimpleHTTPRequestHandler):
 
         if self.data_provider:
             graph_data = self.data_provider.get_graph_data(concept)
-            self._send_json(graph_data)
         else:
-            self._send_json({'nodes': [], 'edges': []})
+            # Fallback: load from static JSON
+            graph_data = self._load_static_graph(concept)
+
+        self._send_json(graph_data)
 
     def _handle_visualization(self, concept_slug: str, viz_name: str):
         """Return visualization data as JSON"""
         if self.data_provider:
             viz_data = self.data_provider.get_visualization_data(concept_slug, viz_name)
-            self._send_json(viz_data)
         else:
-            self._send_json({'error': 'Data provider not configured'}, 500)
+            # Fallback: return graph visualization from static data
+            graph_data = self._load_static_graph(concept_slug)
+            viz_data = {'type': 'graph', **graph_data}
+
+        self._send_json(viz_data)
 
     def _handle_progress_get(self):
         """Get user progress for all or specific concept"""
