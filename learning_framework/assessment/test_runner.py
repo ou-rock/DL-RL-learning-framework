@@ -1,6 +1,7 @@
 """Automated test runner for executing and analyzing pytest results."""
 
 import subprocess
+import sys
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -44,7 +45,7 @@ class TestRunner:
 
         # Run pytest with appropriate flags
         cmd = [
-            "python", "-m", "pytest",
+            sys.executable, "-m", "pytest",
             test_file,
             "-v",  # Verbose output
             "-s",  # Don't capture output (show print statements)
@@ -214,7 +215,7 @@ class TestRunner:
 
         # Run pytest with coverage
         cmd = [
-            "python", "-m", "pytest",
+            sys.executable, "-m", "pytest",
             test_file,
             "-v",
             "-s",

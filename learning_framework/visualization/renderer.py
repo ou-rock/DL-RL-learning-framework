@@ -1,16 +1,35 @@
-"""Visualization rendering and execution"""
+"""Optimized visualization rendering with lazy loading and caching"""
 
 import importlib.util
 import inspect
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-import matplotlib
-matplotlib.use('Agg')  # Non-interactive backend
-import matplotlib.pyplot as plt
+from functools import lru_cache
+
+# Lazy import for matplotlib (slow import)
+_matplotlib_loaded = False
+_plt = None
+
+
+def _ensure_matplotlib():
+    """Lazy load matplotlib"""
+    global _matplotlib_loaded, _plt
+    if not _matplotlib_loaded:
+        import matplotlib
+        matplotlib.use('Agg')  # Non-interactive backend for faster rendering
+        import matplotlib.pyplot as plt
+        _plt = plt
+        _matplotlib_loaded = True
+    return _plt
 
 
 class VisualizationRenderer:
-    """Renders matplotlib visualizations from concept visualize.py files"""
+    """Optimized visualization renderer with caching"""
+
+    # Class-level cache for loaded modules
+    _module_cache: Dict[str, Any] = {}
+    # Cache for available visualizations
+    _viz_list_cache: Dict[str, List[Dict[str, str]]] = {}
 
     def __init__(self, base_path: Optional[Path] = None):
         """Initialize renderer
@@ -24,7 +43,7 @@ class VisualizationRenderer:
         self.base_path = Path(base_path)
 
     def get_available_visualizations(self, concept_slug: str) -> List[Dict[str, str]]:
-        """Discover visualization functions in visualize.py
+        """Discover visualization functions in visualize.py (cached)
 
         Args:
             concept_slug: Concept identifier
@@ -32,12 +51,18 @@ class VisualizationRenderer:
         Returns:
             List of {name, description} dicts
         """
+        # Check cache first
+        cache_key = f"{self.base_path}:{concept_slug}"
+        if cache_key in VisualizationRenderer._viz_list_cache:
+            return VisualizationRenderer._viz_list_cache[cache_key]
+
         viz_path = self.base_path / concept_slug / 'visualize.py'
 
         if not viz_path.exists():
+            VisualizationRenderer._viz_list_cache[cache_key] = []
             return []
 
-        # Import module
+        # Import module (cached)
         module = self._import_viz_module(concept_slug)
 
         # Find all functions
@@ -50,9 +75,12 @@ class VisualizationRenderer:
                 description = doc.strip().split('\n')[0]  # First line only
                 functions.append({
                     'name': name,
-                    'description': description
+                    'description': description,
+                    'function': name  # Add function name for execute_visualization
                 })
 
+        # Cache the result
+        VisualizationRenderer._viz_list_cache[cache_key] = functions
         return functions
 
     def execute_visualization(
@@ -73,12 +101,15 @@ class VisualizationRenderer:
             FileNotFoundError: If visualize.py doesn't exist
             AttributeError: If function not found
         """
+        # Ensure matplotlib is loaded
+        _ensure_matplotlib()
+
         viz_path = self.base_path / concept_slug / 'visualize.py'
 
         if not viz_path.exists():
             raise FileNotFoundError(f"No visualization for {concept_slug}")
 
-        # Import and execute
+        # Import module (cached)
         module = self._import_viz_module(concept_slug)
 
         if not hasattr(module, function_name):
@@ -92,7 +123,7 @@ class VisualizationRenderer:
         return fig
 
     def _import_viz_module(self, concept_slug: str):
-        """Dynamically import visualize.py module
+        """Dynamically import visualize.py module with caching
 
         Args:
             concept_slug: Concept identifier
@@ -101,6 +132,11 @@ class VisualizationRenderer:
             Imported module
         """
         viz_path = self.base_path / concept_slug / 'visualize.py'
+        cache_key = str(viz_path)
+
+        # Check cache first
+        if cache_key in VisualizationRenderer._module_cache:
+            return VisualizationRenderer._module_cache[cache_key]
 
         spec = importlib.util.spec_from_file_location(
             f"viz_{concept_slug}",
@@ -109,4 +145,13 @@ class VisualizationRenderer:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
+        # Cache the module
+        VisualizationRenderer._module_cache[cache_key] = module
+
         return module
+
+    @classmethod
+    def clear_cache(cls):
+        """Clear all caches"""
+        cls._module_cache.clear()
+        cls._viz_list_cache.clear()

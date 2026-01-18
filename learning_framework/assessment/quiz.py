@@ -1,7 +1,8 @@
-"""Quiz engine for ML concepts"""
+"""Quiz engine for ML concepts with caching for performance"""
 
 import json
 import random
+import time
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -13,13 +14,17 @@ from learning_framework.progress import ProgressDatabase
 
 
 class ConceptQuiz:
-    """Quiz engine for a specific concept"""
+    """Quiz engine for a specific concept with caching"""
+
+    # Class-level cache for quiz data
+    _quiz_cache: Dict[str, Dict] = {}
 
     def __init__(
         self,
         concept_slug: str,
         base_path: Optional[Path] = None,
-        db_path: Optional[Path] = None
+        db_path: Optional[Path] = None,
+        quiz_dir: Optional[Path] = None
     ):
         """Initialize quiz for a concept
 
@@ -27,27 +32,106 @@ class ConceptQuiz:
             concept_slug: Concept identifier
             base_path: Base data directory
             db_path: Database path
+            quiz_dir: Directory containing quiz JSON files (for testing)
         """
         if base_path is None:
             base_path = Path.cwd() / 'data'
         if db_path is None:
             db_path = Path.cwd() / 'user_data' / 'progress.db'
 
-        self.concept = load_concept(concept_slug, base_path)
         self.concept_slug = concept_slug
         self.base_path = Path(base_path)
+        self.quiz_dir = quiz_dir  # Custom quiz directory for testing
+        self._questions = None  # Lazy-loaded
 
-        # Load quiz questions
-        self.mc_questions = self._load_questions('quiz_mc.json')
-        self.fb_questions = self._load_questions('quiz_fillblank.json')
+        # Try to load concept, but allow quiz to work without it
+        try:
+            self.concept = load_concept(concept_slug, base_path)
+        except Exception:
+            self.concept = {'name': concept_slug, 'topic': 'unknown', 'difficulty': 1}
 
-        # Initialize helpers
-        self.scheduler = SpacedRepetitionScheduler(db_path)
-        self.grader = AnswerGrader()
-        self.db = ProgressDatabase(db_path)
+        # Lazy initialization of database resources
+        self._scheduler = None
+        self._grader = None
+        self._db = None
+        self._db_path = db_path
 
-    def _load_questions(self, filename: str) -> List[Dict[str, Any]]:
-        """Load questions from JSON file
+    @property
+    def questions(self) -> List[Dict]:
+        """Lazy-load questions with caching"""
+        if self._questions is None:
+            self._questions = self._load_all_questions()
+        return self._questions
+
+    @property
+    def mc_questions(self) -> List[Dict]:
+        """Get multiple choice questions (backward compatibility)"""
+        return [q for q in self.questions if q.get('type') == 'multiple_choice']
+
+    @property
+    def fb_questions(self) -> List[Dict]:
+        """Get fill-in-blank questions (backward compatibility)"""
+        return [q for q in self.questions if q.get('type') == 'fill_blank']
+
+    @property
+    def scheduler(self):
+        """Lazy-load scheduler"""
+        if self._scheduler is None:
+            self._scheduler = SpacedRepetitionScheduler(self._db_path)
+        return self._scheduler
+
+    @property
+    def grader(self):
+        """Lazy-load grader"""
+        if self._grader is None:
+            self._grader = AnswerGrader()
+        return self._grader
+
+    @property
+    def db(self):
+        """Lazy-load database"""
+        if self._db is None:
+            self._db = ProgressDatabase(self._db_path)
+        return self._db
+
+    def _load_all_questions(self) -> List[Dict]:
+        """Load questions from cache or file"""
+        # Determine quiz directory
+        if self.quiz_dir:
+            quiz_base = self.quiz_dir
+            cache_key = f"{self.quiz_dir}:{self.concept_slug}"
+        else:
+            quiz_base = self.base_path / self.concept_slug
+            cache_key = f"{self.base_path}:{self.concept_slug}"
+
+        # Check class-level cache first
+        if cache_key in ConceptQuiz._quiz_cache:
+            return ConceptQuiz._quiz_cache[cache_key]['questions']
+
+        questions = []
+
+        # Try loading from single quiz file (test format)
+        if self.quiz_dir:
+            quiz_file = self.quiz_dir / f"{self.concept_slug}.json"
+            if quiz_file.exists():
+                with open(quiz_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    questions = data.get('questions', [])
+        else:
+            # Load from separate MC and fill-blank files (original format)
+            questions.extend(self._load_questions_file('quiz_mc.json'))
+            questions.extend(self._load_questions_file('quiz_fillblank.json'))
+
+        # Store in cache
+        ConceptQuiz._quiz_cache[cache_key] = {
+            'questions': questions,
+            'loaded_at': time.time()
+        }
+
+        return questions
+
+    def _load_questions_file(self, filename: str) -> List[Dict[str, Any]]:
+        """Load questions from a specific JSON file
 
         Args:
             filename: Quiz JSON filename
@@ -78,35 +162,63 @@ class ConceptQuiz:
         Returns:
             List of selected questions (randomized)
         """
-        questions = []
+        available = self.questions.copy()
 
-        if mix_types and self.mc_questions and self.fb_questions:
-            # 70% multiple choice, 30% fill-in-blank
-            num_mc = int(num_questions * 0.7)
-            num_fb = num_questions - num_mc
+        if not available:
+            return []
 
-            # Select questions
-            mc_selected = random.sample(
-                self.mc_questions,
-                min(num_mc, len(self.mc_questions))
-            )
-            fb_selected = random.sample(
-                self.fb_questions,
-                min(num_fb, len(self.fb_questions))
-            )
+        if mix_types:
+            mc_questions = self.mc_questions
+            fb_questions = self.fb_questions
 
-            questions = mc_selected + fb_selected
+            if mc_questions and fb_questions:
+                # 70% multiple choice, 30% fill-in-blank
+                num_mc = int(num_questions * 0.7)
+                num_fb = num_questions - num_mc
+
+                # Select questions
+                mc_selected = random.sample(
+                    mc_questions,
+                    min(num_mc, len(mc_questions))
+                )
+                fb_selected = random.sample(
+                    fb_questions,
+                    min(num_fb, len(fb_questions))
+                )
+
+                selected = mc_selected + fb_selected
+            else:
+                # Only one type available
+                selected = random.sample(
+                    available,
+                    min(num_questions, len(available))
+                )
         else:
-            # Use only available type
-            available = self.mc_questions + self.fb_questions
-            questions = random.sample(
+            selected = random.sample(
                 available,
                 min(num_questions, len(available))
             )
 
         # Shuffle for random order
-        random.shuffle(questions)
-        return questions
+        random.shuffle(selected)
+        return selected[:num_questions]
+
+    @classmethod
+    def clear_cache(cls):
+        """Clear the question cache"""
+        cls._quiz_cache.clear()
+
+    @classmethod
+    def preload(cls, concepts: List[str], quiz_dir: Optional[Path] = None):
+        """Preload quiz data for multiple concepts
+
+        Args:
+            concepts: List of concept slugs to preload
+            quiz_dir: Directory containing quiz files
+        """
+        for concept in concepts:
+            quiz = cls(concept, quiz_dir=quiz_dir)
+            _ = quiz.questions  # Trigger load
 
     def grade_answer(
         self,

@@ -1,0 +1,5 @@
+# Google Test integration (optional)
+# find_package(GTest REQUIRED)
+# add_executable(learning_core_tests test_matrix.cpp)
+# target_link_libraries(learning_core_tests GTest::GTest GTest::Main)
+# add_test(NAME learning_core_tests COMMAND learning_core_tests)

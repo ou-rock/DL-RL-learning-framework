@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Framework - Interactive Visualizations</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <h1>Learning Framework</h1>
+            <nav class="nav">
+                <a href="#" data-view="concepts">Concepts</a>
+                <a href="#" data-view="graph">Graph Viewer</a>
+                <a href="#" data-view="training">Training</a>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Sidebar: Concept List -->
+            <aside class="sidebar" id="sidebar">
+                <h2>Concepts</h2>
+                <ul class="concept-list" id="concept-list">
+                    <!-- Populated by JavaScript -->
+                </ul>
+            </aside>
+
+            <!-- Visualization Area -->
+            <section class="viz-area" id="viz-area">
+                <div class="viz-header">
+                    <h2 id="viz-title">Select a concept</h2>
+                    <div class="viz-controls" id="viz-controls">
+                        <!-- Dynamic controls populated here -->
+                    </div>
+                </div>
+
+                <div class="viz-container">
+                    <canvas id="viz-canvas" width="800" height="600"></canvas>
+                </div>
+
+                <!-- Parameter Controls -->
+                <div class="param-panel" id="param-panel">
+                    <!-- Sliders and inputs populated here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Status Bar -->
+        <footer class="status-bar" id="status-bar">
+            <span class="status-text">Ready</span>
+            <span class="connection-status" id="ws-status">Disconnected</span>
+        </footer>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/graph.js"></script>
+    <script src="js/params.js"></script>
+    <script src="js/training.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
