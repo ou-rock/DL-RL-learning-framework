@@ -1,16 +1,122 @@
 /**
  * API client for communicating with visualization server
  * Supports both live backend and static JSON fallback for Vercel deployment
+ *
+ * Features:
+ * - Anonymous user tracking via localStorage UUID
+ * - Progress saving with offline queue
+ * - Automatic retry for failed requests
  */
-class API {
-    constructor(baseUrl = '') {
-        this.baseUrl = baseUrl || window.location.origin;
-        this.useStatic = false; // Will be set to true if backend is unavailable
-        this.staticData = {};   // Cache for static JSON data
+
+// User ID management
+const UserManager = {
+    STORAGE_KEY: 'learning_framework_user_id',
+
+    getUserId() {
+        let userId = localStorage.getItem(this.STORAGE_KEY);
+        if (!userId) {
+            userId = crypto.randomUUID();
+            localStorage.setItem(this.STORAGE_KEY, userId);
+            console.log('Generated new user ID:', userId);
+        }
+        return userId;
+    },
+
+    clearUserId() {
+        localStorage.removeItem(this.STORAGE_KEY);
+    }
+};
+
+// Offline progress queue for reliability
+class ProgressQueue {
+    constructor() {
+        this.STORAGE_KEY = 'learning_framework_progress_queue';
     }
 
-    async fetchJSON(endpoint) {
-        const response = await fetch(`${this.baseUrl}${endpoint}`);
+    add(progressData) {
+        const queue = this.getQueue();
+        queue.push({
+            ...progressData,
+            timestamp: Date.now()
+        });
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(queue));
+    }
+
+    getQueue() {
+        try {
+            return JSON.parse(localStorage.getItem(this.STORAGE_KEY)) || [];
+        } catch {
+            return [];
+        }
+    }
+
+    remove(index) {
+        const queue = this.getQueue();
+        queue.splice(index, 1);
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(queue));
+    }
+
+    clear() {
+        localStorage.removeItem(this.STORAGE_KEY);
+    }
+
+    async flush(api) {
+        const queue = this.getQueue();
+        if (queue.length === 0) return;
+
+        console.log(`Flushing ${queue.length} queued progress updates...`);
+
+        for (let i = queue.length - 1; i >= 0; i--) {
+            const item = queue[i];
+            try {
+                await api.saveProgress(item.concept, item.score, true);
+                this.remove(i);
+            } catch (e) {
+                console.warn('Failed to flush progress item:', e);
+                // Stop flushing if we hit an error
+                break;
+            }
+        }
+    }
+}
+
+class API {
+    constructor(baseUrl = '') {
+        // Allow override via data attribute or environment
+        const configuredUrl = document.querySelector('meta[name="api-base-url"]')?.content;
+        this.baseUrl = baseUrl || configuredUrl || window.location.origin;
+        this.useStatic = false; // Will be set to true if backend is unavailable
+        this.staticData = {};   // Cache for static JSON data
+        this.progressQueue = new ProgressQueue();
+
+        // Try to flush any queued progress on initialization
+        this._tryFlushQueue();
+    }
+
+    _getHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'X-User-ID': UserManager.getUserId()
+        };
+    }
+
+    async _tryFlushQueue() {
+        // Delay slightly to let the page load
+        setTimeout(() => {
+            this.progressQueue.flush(this).catch(e => {
+                console.log('Queue flush deferred:', e.message);
+            });
+        }, 2000);
+    }
+
+    async fetchJSON(endpoint, options = {}) {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            ...options,
+            headers: {
+                ...this._getHeaders(),
+                ...options.headers
+            }
+        });
         if (!response.ok) {
             throw new Error(`API error: ${response.status}`);
         }
@@ -112,6 +218,126 @@ class API {
         }
         return this.fetchJSON(`/api/viz/${concept}/${vizName}`);
     }
+
+    /**
+     * Save user progress after completing a quiz
+     * @param {string} concept - Concept slug
+     * @param {number} score - Score from 0.0 to 1.0
+     * @param {boolean} skipQueue - If true, don't add to queue on failure
+     * @returns {Promise<{success: boolean}>}
+     */
+    async saveProgress(concept, score, skipQueue = false) {
+        if (this.useStatic) {
+            // Can't save in static mode - queue for later
+            if (!skipQueue) {
+                this.progressQueue.add({ concept, score });
+                console.log('Progress queued (static mode):', concept);
+            }
+            return { success: false, queued: true };
+        }
+
+        try {
+            const result = await this.fetchJSON('/api/progress', {
+                method: 'POST',
+                body: JSON.stringify({ concept, score })
+            });
+            return result;
+        } catch (e) {
+            console.error('Failed to save progress:', e);
+            if (!skipQueue) {
+                this.progressQueue.add({ concept, score });
+                console.log('Progress queued for retry:', concept);
+            }
+            return { success: false, queued: true, error: e.message };
+        }
+    }
+
+    /**
+     * Get user's progress for all concepts or a specific one
+     * @param {string|null} concept - Optional concept slug to filter
+     * @returns {Promise<Array>}
+     */
+    async getProgress(concept = null) {
+        if (this.useStatic) {
+            // Return cached progress from localStorage
+            return this._getLocalProgress();
+        }
+
+        try {
+            const endpoint = concept ? `/api/progress?concept=${concept}` : '/api/progress';
+            const data = await this.fetchJSON(endpoint);
+            return data.progress || [];
+        } catch (e) {
+            console.error('Failed to get progress:', e);
+            return this._getLocalProgress();
+        }
+    }
+
+    _getLocalProgress() {
+        try {
+            const key = `learning_framework_progress_${UserManager.getUserId()}`;
+            return JSON.parse(localStorage.getItem(key)) || [];
+        } catch {
+            return [];
+        }
+    }
+
+    _saveLocalProgress(progress) {
+        const key = `learning_framework_progress_${UserManager.getUserId()}`;
+        localStorage.setItem(key, JSON.stringify(progress));
+    }
+
+    /**
+     * Get concepts due for review (spaced repetition)
+     * @returns {Promise<Array>}
+     */
+    async getDueReviews() {
+        if (this.useStatic) {
+            return [];
+        }
+
+        try {
+            const data = await this.fetchJSON('/api/reviews');
+            return data.reviews || [];
+        } catch (e) {
+            console.error('Failed to get reviews:', e);
+            return [];
+        }
+    }
+
+    /**
+     * Record a review result
+     * @param {string} concept - Concept slug
+     * @param {number} quality - Quality of recall (0-5, where 5 is perfect)
+     * @returns {Promise<{success: boolean}>}
+     */
+    async recordReview(concept, quality) {
+        if (this.useStatic) {
+            return { success: false };
+        }
+
+        try {
+            return await this.fetchJSON('/api/reviews', {
+                method: 'POST',
+                body: JSON.stringify({ concept, quality })
+            });
+        } catch (e) {
+            console.error('Failed to record review:', e);
+            return { success: false, error: e.message };
+        }
+    }
+
+    /**
+     * Check backend health
+     * @returns {Promise<{status: string, db_available: boolean}>}
+     */
+    async checkHealth() {
+        try {
+            return await this.fetchJSON('/health');
+        } catch (e) {
+            return { status: 'unavailable', db_available: false };
+        }
+    }
 }
 
 // WebSocket manager for real-time updates
@@ -198,3 +424,8 @@ class WebSocketManager {
 // Global instances
 const api = new API();
 const wsManager = new WebSocketManager();
+
+// Export for module usage
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { API, WebSocketManager, UserManager, ProgressQueue };
+}

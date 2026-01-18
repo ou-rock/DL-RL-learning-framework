@@ -1,13 +1,39 @@
-"""SQLite database for progress tracking"""
+"""Database for progress tracking - supports SQLite (local) and PostgreSQL (production)"""
 
+import os
 import sqlite3
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Protocol, runtime_checkable
 from datetime import datetime
 
+# Try to import PostgreSQL support
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+    POSTGRES_AVAILABLE = True
+except ImportError:
+    POSTGRES_AVAILABLE = False
+    psycopg2 = None
 
-class ProgressDatabase:
-    """Manages SQLite database for learning progress"""
+
+@runtime_checkable
+class DatabaseBackend(Protocol):
+    """Protocol defining database backend interface"""
+
+    def add_concept(self, name: str, topic: str, difficulty: str) -> None: ...
+    def get_concept(self, name: str) -> Optional[Dict[str, Any]]: ...
+    def update_concept_mastery(
+        self, name: str,
+        quiz_passed: Optional[bool] = None,
+        implementation_passed: Optional[bool] = None,
+        gpu_validated: Optional[bool] = None
+    ) -> None: ...
+    def get_all_concepts(self) -> list: ...
+    def close(self) -> None: ...
+
+
+class SQLiteBackend:
+    """SQLite backend for local progress tracking"""
 
     SCHEMA = """
     CREATE TABLE IF NOT EXISTS concepts (
@@ -61,7 +87,7 @@ class ProgressDatabase:
     """
 
     def __init__(self, db_path: Path):
-        """Initialize database connection and schema
+        """Initialize SQLite connection
 
         Args:
             db_path: Path to SQLite database file
@@ -70,7 +96,7 @@ class ProgressDatabase:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.conn = sqlite3.connect(str(self.db_path))
-        self.conn.row_factory = sqlite3.Row  # Enable dict-like access
+        self.conn.row_factory = sqlite3.Row
         self._init_schema()
 
     def _init_schema(self):
@@ -79,13 +105,7 @@ class ProgressDatabase:
         self.conn.commit()
 
     def add_concept(self, name: str, topic: str, difficulty: str):
-        """Add a new concept to track
-
-        Args:
-            name: Concept name (unique identifier)
-            topic: Topic category
-            difficulty: Difficulty level (easy, intermediate, hard)
-        """
+        """Add a new concept to track"""
         cursor = self.conn.cursor()
         cursor.execute("""
             INSERT OR IGNORE INTO concepts (name, topic, difficulty)
@@ -94,22 +114,11 @@ class ProgressDatabase:
         self.conn.commit()
 
     def get_concept(self, name: str) -> Optional[Dict[str, Any]]:
-        """Get concept by name
-
-        Args:
-            name: Concept name
-
-        Returns:
-            Concept data as dictionary or None
-        """
+        """Get concept by name"""
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM concepts WHERE name=?", (name,))
         row = cursor.fetchone()
-
-        if row is None:
-            return None
-
-        return dict(row)
+        return dict(row) if row else None
 
     def update_concept_mastery(
         self,
@@ -118,14 +127,7 @@ class ProgressDatabase:
         implementation_passed: Optional[bool] = None,
         gpu_validated: Optional[bool] = None
     ):
-        """Update concept mastery status
-
-        Args:
-            name: Concept name
-            quiz_passed: Quiz completion status
-            implementation_passed: Implementation completion status
-            gpu_validated: GPU validation status
-        """
+        """Update concept mastery status"""
         updates = []
         params = []
 
@@ -152,11 +154,7 @@ class ProgressDatabase:
         self.conn.commit()
 
     def get_all_concepts(self) -> list:
-        """Get all concepts
-
-        Returns:
-            List of concept dictionaries
-        """
+        """Get all concepts"""
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM concepts ORDER BY topic, name")
         return [dict(row) for row in cursor.fetchall()]
@@ -164,3 +162,192 @@ class ProgressDatabase:
     def close(self):
         """Close database connection"""
         self.conn.close()
+
+
+class PostgreSQLBackend:
+    """PostgreSQL backend for production progress tracking"""
+
+    SCHEMA = """
+    CREATE TABLE IF NOT EXISTS concepts (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) UNIQUE NOT NULL,
+        topic VARCHAR(255) NOT NULL,
+        difficulty VARCHAR(50) NOT NULL,
+        quiz_passed BOOLEAN DEFAULT FALSE,
+        implementation_passed BOOLEAN DEFAULT FALSE,
+        gpu_validated BOOLEAN DEFAULT FALSE,
+        last_reviewed DATE,
+        next_review DATE,
+        review_interval INTEGER DEFAULT 1,
+        created_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS quiz_results (
+        id SERIAL PRIMARY KEY,
+        concept_id INTEGER NOT NULL REFERENCES concepts(id),
+        question_id VARCHAR(255) NOT NULL,
+        correct BOOLEAN NOT NULL,
+        timestamp TIMESTAMP DEFAULT NOW(),
+        next_review DATE,
+        review_interval INTEGER DEFAULT 1
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_quiz_next_review ON quiz_results(next_review);
+
+    CREATE TABLE IF NOT EXISTS gpu_jobs (
+        id SERIAL PRIMARY KEY,
+        job_id VARCHAR(255) UNIQUE NOT NULL,
+        concept VARCHAR(255) NOT NULL,
+        backend VARCHAR(100) NOT NULL,
+        submitted_at TIMESTAMP NOT NULL,
+        completed_at TIMESTAMP,
+        status VARCHAR(50) NOT NULL,
+        cost FLOAT DEFAULT 0.0,
+        accuracy FLOAT,
+        baseline_accuracy FLOAT,
+        passed BOOLEAN DEFAULT FALSE
+    );
+
+    CREATE TABLE IF NOT EXISTS study_sessions (
+        id SERIAL PRIMARY KEY,
+        started_at TIMESTAMP NOT NULL,
+        ended_at TIMESTAMP,
+        concepts_studied TEXT,
+        activities TEXT
+    );
+    """
+
+    def __init__(self, database_url: str):
+        """Initialize PostgreSQL connection
+
+        Args:
+            database_url: PostgreSQL connection URL
+        """
+        if not POSTGRES_AVAILABLE:
+            raise ImportError("psycopg2 not available - install with: pip install psycopg2-binary")
+
+        self.conn = psycopg2.connect(database_url)
+        self._init_schema()
+
+    def _init_schema(self):
+        """Create database schema if not exists"""
+        with self.conn.cursor() as cur:
+            cur.execute(self.SCHEMA)
+        self.conn.commit()
+
+    def add_concept(self, name: str, topic: str, difficulty: str):
+        """Add a new concept to track"""
+        with self.conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO concepts (name, topic, difficulty)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (name) DO NOTHING
+            """, (name, topic, difficulty))
+        self.conn.commit()
+
+    def get_concept(self, name: str) -> Optional[Dict[str, Any]]:
+        """Get concept by name"""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("SELECT * FROM concepts WHERE name=%s", (name,))
+            row = cur.fetchone()
+            return dict(row) if row else None
+
+    def update_concept_mastery(
+        self,
+        name: str,
+        quiz_passed: Optional[bool] = None,
+        implementation_passed: Optional[bool] = None,
+        gpu_validated: Optional[bool] = None
+    ):
+        """Update concept mastery status"""
+        updates = []
+        params = []
+
+        if quiz_passed is not None:
+            updates.append("quiz_passed = %s")
+            params.append(quiz_passed)
+
+        if implementation_passed is not None:
+            updates.append("implementation_passed = %s")
+            params.append(implementation_passed)
+
+        if gpu_validated is not None:
+            updates.append("gpu_validated = %s")
+            params.append(gpu_validated)
+
+        if not updates:
+            return
+
+        params.append(name)
+        query = f"UPDATE concepts SET {', '.join(updates)} WHERE name=%s"
+
+        with self.conn.cursor() as cur:
+            cur.execute(query, params)
+        self.conn.commit()
+
+    def get_all_concepts(self) -> list:
+        """Get all concepts"""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("SELECT * FROM concepts ORDER BY topic, name")
+            return [dict(row) for row in cur.fetchall()]
+
+    def close(self):
+        """Close database connection"""
+        self.conn.close()
+
+
+class ProgressDatabase:
+    """Unified progress database with auto-detected backend
+
+    Uses PostgreSQL if DATABASE_URL is set, otherwise falls back to SQLite.
+    """
+
+    def __init__(self, db_path: Optional[Path] = None):
+        """Initialize database with appropriate backend
+
+        Args:
+            db_path: Path for SQLite database (ignored if DATABASE_URL is set)
+        """
+        database_url = os.environ.get('DATABASE_URL')
+
+        if database_url and POSTGRES_AVAILABLE:
+            self._backend = PostgreSQLBackend(database_url)
+            self._backend_type = 'postgresql'
+        else:
+            if db_path is None:
+                db_path = Path.home() / '.learning_framework' / 'progress.db'
+            self._backend = SQLiteBackend(db_path)
+            self._backend_type = 'sqlite'
+
+    @property
+    def backend_type(self) -> str:
+        """Get current backend type ('sqlite' or 'postgresql')"""
+        return self._backend_type
+
+    def add_concept(self, name: str, topic: str, difficulty: str):
+        """Add a new concept to track"""
+        self._backend.add_concept(name, topic, difficulty)
+
+    def get_concept(self, name: str) -> Optional[Dict[str, Any]]:
+        """Get concept by name"""
+        return self._backend.get_concept(name)
+
+    def update_concept_mastery(
+        self,
+        name: str,
+        quiz_passed: Optional[bool] = None,
+        implementation_passed: Optional[bool] = None,
+        gpu_validated: Optional[bool] = None
+    ):
+        """Update concept mastery status"""
+        self._backend.update_concept_mastery(
+            name, quiz_passed, implementation_passed, gpu_validated
+        )
+
+    def get_all_concepts(self) -> list:
+        """Get all concepts"""
+        return self._backend.get_all_concepts()
+
+    def close(self):
+        """Close database connection"""
+        self._backend.close()
