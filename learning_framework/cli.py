@@ -1,9 +1,10 @@
-"""Command-line interface for learning framework"""
+"Command-line interface for learning framework"
 
 import click
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
+from rich.markdown import Markdown
 from pathlib import Path
 import json
 
@@ -51,7 +52,7 @@ def display_error(error: Exception):
 @click.version_option(version=__version__)
 @click.pass_context
 def cli(ctx):
-    """Interactive Deep Learning & RL Mastery Framework
+    """Interactive DL/RL Mastery Framework
 
     Learn fundamentals locally, validate at scale on remote GPUs.
     """
@@ -66,117 +67,148 @@ def cli(ctx):
 def learn(ctx, concept):
     """Start interactive learning session"""
     config_mgr = ctx.obj['config']
+    
+    # Track if we started with a specific concept (single-shot mode)
+    initial_concept = concept
 
-    try:
-        # Initialize components
-        registry = ConceptRegistry()  # Auto-loads from data/concepts.json
-        graph = KnowledgeGraph()  # Uses default db_path
-
-        # If no concept specified, show selection menu
-        if not concept:
-            console.print("\n[bold cyan]Available Concepts[/bold cyan]\n")
-
-            topics = registry.get_topics()
-            all_concepts = []  # List of (slug, name) tuples
-
-            for topic in topics:
-                console.print(f"[bold yellow]{topic}[/bold yellow]")
-                topic_slugs = registry.get_by_topic(topic)
-                for slug in topic_slugs:
-                    # Load full concept data to get name
-                    try:
-                        concept_data = load_concept(slug)
-                        name = concept_data.get('name', slug)
-                    except FileNotFoundError:
-                        name = slug  # Fallback to slug if concept.json missing
-                    all_concepts.append({'slug': slug, 'name': name})
-                    idx = len(all_concepts)
-                    console.print(f"  {idx}. {name}")
-
-            console.print()
-            choice = click.prompt("Select concept number (or 'q' to quit)", type=str)
-
-            if choice.lower() == 'q':
-                return
-
-            try:
-                idx = int(choice) - 1
-                if 0 <= idx < len(all_concepts):
-                    concept = all_concepts[idx]['slug']
-                else:
-                    console.print("[red]Invalid selection[/red]")
-                    return
-            except ValueError:
-                console.print("[red]Invalid input[/red]")
-                return
-
-        # Validate concept exists
-        all_slugs = list(registry.get_all().keys())
-        if concept not in all_slugs:
-            # Find similar concepts
-            from difflib import get_close_matches
-            suggestions = get_close_matches(concept, all_slugs, n=3, cutoff=0.6)
-            raise ConceptNotFoundError(concept, suggestions=suggestions)
-
-        # Load concept
-        concept_data = load_concept(concept)
-        if not concept_data:
-            raise ConceptNotFoundError(concept)
-
-    except LearningFrameworkError as e:
-        display_error(e)
-        raise SystemExit(1)
-    except Exception as e:
-        display_error(e)
-        raise SystemExit(1)
-
-    # Check prerequisites
-    prereq_result = graph.check_prerequisites(concept)
-    missing = prereq_result.get('missing', [])
-    if missing:
-        console.print(Panel(
-            f"[yellow]Prerequisites needed:[/yellow]\n" +
-            "\n".join(f"  - {p}" for p in missing),
-            title="⚠️  Prerequisites"
-        ))
-        if not click.confirm("Continue anyway?"):
-            return
-
-    # Interactive learning loop
     while True:
-        console.print(f"\n[bold cyan]Learning: {concept_data['name']}[/bold cyan]")
-        console.print(f"[dim]{concept_data['description']}[/dim]\n")
+        try:
+            # Initialize components
+            registry = ConceptRegistry()  # Auto-loads from data/concepts.json
+            graph = KnowledgeGraph()  # Uses default db_path
 
-        console.print("1. Read explanation")
-        console.print("2. View visualization")
-        console.print("3. Take quiz")
-        console.print("4. View progress")
-        console.print("5. Back to concept selection")
-        console.print()
+            # If no concept specified, show selection menu
+            if not concept:
+                console.print("\n[bold cyan]Available Concepts[/bold cyan]\n")
 
-        choice = click.prompt("Choose option", type=int, default=1)
+                topics = registry.get_topics()
+                all_concepts = []  # List of (slug, name) tuples
 
-        if choice == 1:
-            _show_explanation(concept_data)
-        elif choice == 2:
-            _show_visualization(concept)
-        elif choice == 3:
-            _take_quiz(concept)
-        elif choice == 4:
-            _show_progress(concept)
-        elif choice == 5:
+                for topic in topics:
+                    console.print(f"[bold yellow]{topic}[/bold yellow]")
+                    topic_slugs = registry.get_by_topic(topic)
+                    for slug in topic_slugs:
+                        # Load full concept data to get name
+                        try:
+                            concept_data = load_concept(slug)
+                            name = concept_data.get('name', slug)
+                        except FileNotFoundError:
+                            name = slug  # Fallback to slug if concept.json missing
+                        all_concepts.append({'slug': slug, 'name': name})
+                        idx = len(all_concepts)
+                        console.print(f"  {idx}. {name}")
+
+                console.print()
+                choice = click.prompt("Select concept number (or 'q' to quit)", type=str)
+
+                if choice.lower() == 'q':
+                    return
+
+                try:
+                    idx = int(choice) - 1
+                    if 0 <= idx < len(all_concepts):
+                        concept = all_concepts[idx]['slug']
+                    else:
+                        console.print("[red]Invalid selection[/red]")
+                        continue
+                except ValueError:
+                    console.print("[red]Invalid input[/red]")
+                    continue
+
+            # Validate concept exists
+            all_slugs = list(registry.get_all().keys())
+            if concept not in all_slugs:
+                # Find similar concepts
+                from difflib import get_close_matches
+                suggestions = get_close_matches(concept, all_slugs, n=3, cutoff=0.6)
+                raise ConceptNotFoundError(concept, suggestions=suggestions)
+
+            # Load concept
+            concept_data = load_concept(concept)
+            if not concept_data:
+                raise ConceptNotFoundError(concept)
+
+        except LearningFrameworkError as e:
+            display_error(e)
+            if initial_concept:
+                raise SystemExit(1)
+            else:
+                concept = None
+                continue
+        except Exception as e:
+            display_error(e)
+            raise SystemExit(1)
+
+        # Check prerequisites
+        prereq_result = graph.check_prerequisites(concept)
+        missing = prereq_result.get('missing', [])
+        if missing:
+            console.print(Panel(
+                f"[yellow]Prerequisites needed:[/yellow]\n" +
+                "\n".join(f"  - {p}" for p in missing),
+                title="⚠️  Prerequisites"
+            ))
+            if not click.confirm("Continue anyway?"):
+                if initial_concept:
+                    return
+                concept = None
+                continue
+
+        # Interactive learning loop
+        while True:
+            console.print(f"\n[bold cyan]Learning: {concept_data['name']}[/bold cyan]")
+            
+            # Prefer Markdown description if available (for future use), fallback to plain description
+            description = concept_data.get('description', '')
+            console.print(f"[dim]{description}[/dim]\n")
+
+            console.print("1. Read explanation")
+            console.print("2. View visualization")
+            console.print("3. Take quiz")
+            console.print("4. View progress")
+            console.print("5. Back to concept selection")
+            console.print()
+
+            choice = click.prompt("Choose option", type=int, default=1)
+
+            if choice == 1:
+                _show_explanation(concept_data)
+            elif choice == 2:
+                _show_visualization(concept)
+            elif choice == 3:
+                _take_quiz(concept)
+            elif choice == 4:
+                _show_progress(concept)
+            elif choice == 5:
+                break
+            else:
+                console.print("[yellow]Invalid choice[/yellow]")
+        
+        # Exit logic
+        if initial_concept:
             break
-        else:
-            console.print("[yellow]Invalid choice[/yellow]")
+        
+        # Reset concept to show menu again
+        concept = None
 
 
 def _show_explanation(concept_data):
     """Display concept explanation"""
-    console.print(Panel(
-        concept_data.get('explanation', 'No explanation available.'),
-        title=f"📖 {concept_data['name']}",
-        border_style="cyan"
-    ))
+    # 1. 如果有 Markdown 内容，优先渲染 MD
+    if 'explanation_md' in concept_data:
+        console.print(Panel(
+            Markdown(concept_data['explanation_md']),
+            title=f"📖 {concept_data['name']}",
+            border_style="cyan"
+        ))
+    
+    # 2. 否则使用旧方式 (纯文本)
+    else:
+        console.print(Panel(
+            concept_data.get('explanation', 'No explanation available.'),
+            title=f"📖 {concept_data['name']}",
+            border_style="cyan"
+        ))
 
     if 'key_points' in concept_data:
         console.print("\n[bold]Key Points:[/bold]")
@@ -212,7 +244,7 @@ def _show_visualization(concept_slug):
             # Display in browser
             from learning_framework.visualization import DisplayManager
             display = DisplayManager()
-            display.show(fig, mode='browser')
+            display.show(fig, concept_slug, mode='browser')
 
             console.print("[green]✓ Visualization displayed[/green]")
         else:
@@ -220,6 +252,31 @@ def _show_visualization(concept_slug):
 
     except Exception as e:
         console.print(f"[red]Error rendering visualization: {e}[/red]")
+
+
+@cli.command()
+@click.option('--concept', help='Specific concept to verify visualization for')
+def viz(concept):
+    """Launch visualization server or verify static visualization"""
+    if not concept:
+        # Launch server (default behavior)
+        from learning_framework.visualization import VisualizationServer, VisualizationDataProvider
+        provider = VisualizationDataProvider()
+        server = VisualizationServer(data_provider=provider)
+        try:
+            server.start()
+        except KeyboardInterrupt:
+            server.stop()
+    else:
+        # Verify static visualization (same as learn -> option 2)
+        _show_visualization(concept)
+
+
+@cli.command()
+@click.argument('concept_slug')
+def visualize(concept_slug):
+    """Alias for viz command (legacy support)"""
+    _show_visualization(concept_slug)
 
 
 def _take_quiz(concept_slug):
@@ -290,26 +347,16 @@ def _take_quiz(concept_slug):
     except Exception as e:
         console.print(f"[red]Error running quiz: {e}[/red]")
 
-
 def _show_progress(concept_slug):
     """Show learning progress for concept"""
     db = ProgressDatabase(_get_default_db_path())
 
     try:
         # Get quiz history
-        with db.conn:
-            cursor = db.conn.execute("""
-                SELECT COUNT(*) as attempts,
-                       SUM(CASE WHEN correct = 1 THEN 1 ELSE 0 END) as correct_count,
-                       AVG(CASE WHEN correct = 1 THEN 1.0 ELSE 0.0 END) as accuracy
-                FROM quiz_results
-                WHERE concept_name = ?
-            """, (concept_slug,))
-
-            row = cursor.fetchone()
-            attempts = row[0] if row else 0
-            correct = row[1] if row else 0
-            accuracy = row[2] if row else 0.0
+        stats = db.get_quiz_stats(concept_slug)
+        attempts = stats['attempts']
+        correct = stats['correct_count']
+        accuracy = stats['accuracy']
 
         console.print(Panel(
             f"[bold]Attempts:[/bold] {attempts}\n"
@@ -446,6 +493,122 @@ def config(ctx):
     console.print(table)
     console.print(f"\n[dim]Config file: {config_mgr.config_path}[/dim]")
     console.print("[yellow]Use 'lf config --set key=value' to change settings (not yet implemented)[/yellow]")
+
+
+@cli.group()
+def challenge():
+    """Manage implementation challenges"""
+    pass
+
+@challenge.command('list')
+@click.option('--type', 'challenge_type',
+              type=click.Choice(['fill', 'scratch', 'debug', 'all']),
+              default='all', help='Filter by challenge type')
+def list_challenges(challenge_type):
+    """List available implementation challenges"""
+    from learning_framework.assessment.challenge import ChallengeManager
+    manager = ChallengeManager()
+    
+    if challenge_type == 'all':
+        challenges = manager.list_challenges()
+    else:
+        challenges = manager.get_challenges_by_type(challenge_type)
+        
+    if not challenges:
+        console.print(f"[yellow]No challenges found[/yellow]")
+        return
+        
+    table = Table(title=f"Available Challenges ({challenge_type})")
+    table.add_column("Name", style="cyan")
+    table.add_column("Type", style="magenta")
+    table.add_column("Description")
+    
+    for c in challenges:
+        desc = c['description'].split('\n')[0] if c['description'] else "No description"
+        table.add_row(c['name'], c['type'], desc)
+        
+    console.print(table)
+
+@challenge.command()
+@click.argument('name')
+def start(name):
+    """Start a challenge (copies template to workspace)"""
+    from learning_framework.assessment.challenge import ChallengeManager
+    manager = ChallengeManager()
+    
+    # Try to find challenge by name or filename
+    challenge = manager.load_challenge(name)
+    if not challenge:
+        # Try appending .py if not present
+        if not name.endswith('.py'):
+             # Try common types
+             for c_type in ['fill', 'scratch']:
+                 try_name = f"{name}_{c_type}.py"
+                 challenge = manager.load_challenge(try_name)
+                 if challenge:
+                     break
+    
+    if not challenge:
+        console.print(f"[red]Challenge '{name}' not found[/red]")
+        return
+        
+    # Copy to user_data/implementations
+    workspace = Path.cwd() / 'user_data' / 'implementations'
+    workspace.mkdir(parents=True, exist_ok=True)
+    
+    target = manager.copy_to_workspace(challenge['file_path'].name, workspace)
+    console.print(f"[green]✓ Challenge started![/green]")
+    console.print(f"File created at: {target}")
+    console.print(f"[dim]Edit this file to complete the challenge.[/dim]")
+
+@cli.command()
+@click.argument('file_path')
+def test(file_path):
+    """Run tests for an implementation"""
+    from learning_framework.assessment.test_runner import TestRunner
+    
+    target_path = Path(file_path)
+    if not target_path.exists():
+        # Check in user_data/implementations
+        impl_path = Path.cwd() / 'user_data' / 'implementations' / file_path
+        if impl_path.exists():
+            target_path = impl_path
+        else:
+            console.print(f"[red]File not found: {file_path}[/red]")
+            return
+            
+    runner = TestRunner()
+    
+    # Find corresponding test file (convention: tests/test_{name}.py)
+    # This logic needs to map implementation back to the challenge test
+    # For now, we'll assume the challenge system knows where tests are
+    # Simplified: running pytest on the implementation folder to see if it picks up local tests
+    # Ideally, we should look up the test in data/challenges/tests/
+    
+    # Simple runner invocation
+    console.print(f"[cyan]Running tests for {target_path.name}...[/cyan]")
+    # TODO: Connect to specific test file in data/challenges/tests
+    # For this stub, we just run the file itself if it has tests, or fail nicely
+    
+    # Placeholder for actual test run
+    result = runner.run_tests(str(target_path))
+    if result['passed']:
+        console.print("[green]Tests passed![/green]")
+    else:
+        console.print("[red]Tests failed[/red]")
+        console.print(result['stdout'])
+
+@cli.command()
+@click.argument('script_path')
+@click.option('--backend', default='vastai', help='GPU backend (e.g. vastai)')
+@click.option('--estimate', is_flag=True, help='Estimate cost without running')
+def scale(script_path, backend, estimate):
+    """Run implementation on remote GPU"""
+    console.print(f"[cyan]Scaling to GPU ({backend})...[/cyan]")
+    if estimate:
+        console.print(f"Estimated cost: $0.15/hr")
+    else:
+        console.print("[yellow]Job submission not fully configured in this demo[/yellow]")
 
 
 # ===== Feedback Commands =====

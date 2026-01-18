@@ -25,11 +25,21 @@
       "status": "complete",
       "topic": "reinforcement_learning",
       "difficulty": "intermediate"
+    },
+    "multi_armed_bandit": {
+      "status": "complete",
+      "topic": "reinforcement_learning",
+      "difficulty": "beginner"
+    },
+    "non_stationary_problem": {
+      "status": "complete",
+      "topic": "reinforcement_learning",
+      "difficulty": "intermediate"
     }
   },
   "topics": {
     "optimization": ["gradient_descent"],
     "neural_networks": ["backpropagation", "loss_functions", "activation_functions"],
-    "reinforcement_learning": ["q_learning"]
+    "reinforcement_learning": ["q_learning", "multi_armed_bandit", "non_stationary_problem"]
   }
 }

@@ -22,6 +22,7 @@ class DatabaseBackend(Protocol):
 
     def add_concept(self, name: str, topic: str, difficulty: str) -> None: ...
     def get_concept(self, name: str) -> Optional[Dict[str, Any]]: ...
+    def get_quiz_stats(self, concept_name: str) -> Dict[str, Any]: ...
     def update_concept_mastery(
         self, name: str,
         quiz_passed: Optional[bool] = None,
@@ -119,6 +120,35 @@ class SQLiteBackend:
         cursor.execute("SELECT * FROM concepts WHERE name=?", (name,))
         row = cursor.fetchone()
         return dict(row) if row else None
+
+    def get_quiz_stats(self, concept_name: str) -> Dict[str, Any]:
+        """Get aggregated quiz statistics for a concept"""
+        cursor = self.conn.cursor()
+        
+        # Get concept ID first
+        cursor.execute("SELECT id FROM concepts WHERE name=?", (concept_name,))
+        concept_row = cursor.fetchone()
+        
+        if not concept_row:
+            return {'attempts': 0, 'correct_count': 0, 'accuracy': 0.0}
+            
+        concept_id = concept_row[0]
+        
+        cursor.execute("""
+            SELECT COUNT(*) as attempts,
+                   SUM(CASE WHEN correct = 1 THEN 1 ELSE 0 END) as correct_count,
+                   AVG(CASE WHEN correct = 1 THEN 1.0 ELSE 0.0 END) as accuracy
+            FROM quiz_results
+            WHERE concept_id = ?
+        """, (concept_id,))
+        
+        row = cursor.fetchone()
+        
+        return {
+            'attempts': row['attempts'] if row and row['attempts'] else 0,
+            'correct_count': row['correct_count'] if row and row['correct_count'] else 0,
+            'accuracy': row['accuracy'] if row and row['accuracy'] else 0.0
+        }
 
     def update_concept_mastery(
         self,
@@ -252,6 +282,34 @@ class PostgreSQLBackend:
             row = cur.fetchone()
             return dict(row) if row else None
 
+    def get_quiz_stats(self, concept_name: str) -> Dict[str, Any]:
+        """Get aggregated quiz statistics for a concept"""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            # Get concept ID
+            cur.execute("SELECT id FROM concepts WHERE name=%s", (concept_name,))
+            concept_row = cur.fetchone()
+            
+            if not concept_row:
+                return {'attempts': 0, 'correct_count': 0, 'accuracy': 0.0}
+                
+            concept_id = concept_row['id']
+            
+            cur.execute("""
+                SELECT COUNT(*) as attempts,
+                       SUM(CASE WHEN correct THEN 1 ELSE 0 END) as correct_count,
+                       AVG(CASE WHEN correct THEN 1.0 ELSE 0.0 END) as accuracy
+                FROM quiz_results
+                WHERE concept_id = %s
+            """, (concept_id,))
+            
+            row = cur.fetchone()
+            
+            return {
+                'attempts': row['attempts'] if row and row['attempts'] else 0,
+                'correct_count': row['correct_count'] if row and row['correct_count'] else 0,
+                'accuracy': float(row['accuracy']) if row and row['accuracy'] else 0.0
+            }
+
     def update_concept_mastery(
         self,
         name: str,
@@ -331,6 +389,10 @@ class ProgressDatabase:
     def get_concept(self, name: str) -> Optional[Dict[str, Any]]:
         """Get concept by name"""
         return self._backend.get_concept(name)
+
+    def get_quiz_stats(self, concept_name: str) -> Dict[str, Any]:
+        """Get aggregated quiz statistics"""
+        return self._backend.get_quiz_stats(concept_name)
 
     def update_concept_mastery(
         self,
