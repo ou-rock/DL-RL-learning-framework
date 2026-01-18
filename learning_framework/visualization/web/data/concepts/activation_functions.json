@@ -1,0 +1,21 @@
+{
+  "slug": "activation_functions",
+  "name": "Activation Functions",
+  "topic": "Neural Networks",
+  "description": "Non-linear functions that enable neural networks to learn complex patterns.",
+  "graph": {
+    "nodes": [
+      {"id": "input", "label": "z\nlinear", "type": "input"},
+      {"id": "sigmoid", "label": "\u03c3(z)\nsigmoid", "type": "sigmoid"},
+      {"id": "relu", "label": "ReLU(z)\nmax(0,z)", "type": "relu"},
+      {"id": "tanh", "label": "tanh(z)", "type": "hidden"},
+      {"id": "softmax", "label": "softmax(z)\nfor classification", "type": "softmax"}
+    ],
+    "edges": [
+      {"source": "input", "target": "sigmoid", "type": "forward"},
+      {"source": "input", "target": "relu", "type": "forward"},
+      {"source": "input", "target": "tanh", "type": "forward"},
+      {"source": "input", "target": "softmax", "type": "forward"}
+    ]
+  }
+}

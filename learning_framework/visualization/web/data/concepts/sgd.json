@@ -1,0 +1,23 @@
+{
+  "slug": "sgd",
+  "name": "Stochastic Gradient Descent",
+  "topic": "Optimization",
+  "description": "Gradient descent with mini-batch sampling for faster convergence.",
+  "graph": {
+    "nodes": [
+      {"id": "data", "label": "Dataset\nN samples", "type": "input"},
+      {"id": "sample", "label": "Mini-batch\nB samples", "type": "hidden"},
+      {"id": "forward", "label": "Forward\nPass", "type": "matmul"},
+      {"id": "loss", "label": "Batch\nLoss", "type": "output"},
+      {"id": "backward", "label": "Backward\nPass", "type": "hidden"},
+      {"id": "update", "label": "Update\n\u03b8 = \u03b8 - \u03b1\u2207L", "type": "variable"}
+    ],
+    "edges": [
+      {"source": "data", "target": "sample", "type": "forward"},
+      {"source": "sample", "target": "forward", "type": "forward"},
+      {"source": "forward", "target": "loss", "type": "forward"},
+      {"source": "loss", "target": "backward", "type": "gradient"},
+      {"source": "backward", "target": "update", "type": "gradient"}
+    ]
+  }
+}

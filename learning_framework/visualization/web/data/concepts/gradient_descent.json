@@ -1,0 +1,22 @@
+{
+  "slug": "gradient_descent",
+  "name": "Gradient Descent",
+  "topic": "Optimization",
+  "description": "Iterative optimization algorithm that updates parameters in the direction of steepest descent.",
+  "graph": {
+    "nodes": [
+      {"id": "theta", "label": "\u03b8\nparams", "type": "variable"},
+      {"id": "grad", "label": "\u2207L\ngradient", "type": "hidden"},
+      {"id": "lr", "label": "\u03b1\nlearning rate", "type": "input"},
+      {"id": "update", "label": "\u03b1\u00b7\u2207L", "type": "matmul"},
+      {"id": "new_theta", "label": "\u03b8 - \u03b1\u2207L\nnew params", "type": "output"}
+    ],
+    "edges": [
+      {"source": "theta", "target": "grad", "type": "forward"},
+      {"source": "grad", "target": "update", "type": "forward"},
+      {"source": "lr", "target": "update", "type": "forward"},
+      {"source": "theta", "target": "new_theta", "type": "forward"},
+      {"source": "update", "target": "new_theta", "type": "forward"}
+    ]
+  }
+}

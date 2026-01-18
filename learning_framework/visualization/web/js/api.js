@@ -47,21 +47,43 @@ class API {
 
     async getConceptDetail(slug) {
         if (this.useStatic) {
-            // Return mock detail from concepts list
-            const data = await this.fetchStatic('concepts.json');
-            const concept = data.concepts.find(c => c.slug === slug);
-            return concept ? {
-                ...concept,
-                visualizations: ['computational_graph'],
-                has_quiz: true,
-                has_challenge: true
-            } : null;
+            // Try to load concept-specific data first
+            try {
+                const conceptData = await this.fetchStatic(`concepts/${slug}.json`);
+                return {
+                    ...conceptData,
+                    visualizations: ['computational_graph'],
+                    has_quiz: true,
+                    has_challenge: true
+                };
+            } catch (e) {
+                // Fallback to concepts list
+                const data = await this.fetchStatic('concepts.json');
+                const concept = data.concepts.find(c => c.slug === slug);
+                return concept ? {
+                    ...concept,
+                    visualizations: ['computational_graph'],
+                    has_quiz: true,
+                    has_challenge: true
+                } : null;
+            }
         }
         return this.fetchJSON(`/api/concept/${slug}`);
     }
 
     async getGraphData(concept = null) {
         if (this.useStatic) {
+            // Try concept-specific graph first
+            if (concept) {
+                try {
+                    const conceptData = await this.fetchStatic(`concepts/${concept}.json`);
+                    if (conceptData.graph) {
+                        return conceptData.graph;
+                    }
+                } catch (e) {
+                    // Fall through to default
+                }
+            }
             return this.fetchStatic('graph.json');
         }
         const endpoint = concept ? `/api/graph?concept=${concept}` : '/api/graph';
@@ -70,6 +92,18 @@ class API {
 
     async getVisualizationData(concept, vizName = 'main_visualization') {
         if (this.useStatic) {
+            // Try concept-specific visualization first
+            try {
+                const conceptData = await this.fetchStatic(`concepts/${concept}.json`);
+                if (conceptData.graph) {
+                    return {
+                        type: 'graph',
+                        ...conceptData.graph
+                    };
+                }
+            } catch (e) {
+                // Fall through to default
+            }
             const graphData = await this.fetchStatic('graph.json');
             return {
                 type: 'graph',

@@ -1,0 +1,30 @@
+{
+  "slug": "backpropagation",
+  "name": "Backpropagation",
+  "topic": "Neural Networks",
+  "description": "The algorithm for computing gradients in neural networks using the chain rule.",
+  "graph": {
+    "nodes": [
+      {"id": "x", "label": "x\ninput", "type": "input"},
+      {"id": "w1", "label": "W\u2081", "type": "variable"},
+      {"id": "h", "label": "h=Wx", "type": "matmul"},
+      {"id": "a", "label": "ReLU", "type": "relu"},
+      {"id": "w2", "label": "W\u2082", "type": "variable"},
+      {"id": "y", "label": "y\u0302=Wa", "type": "matmul"},
+      {"id": "loss", "label": "Loss", "type": "output"}
+    ],
+    "edges": [
+      {"source": "x", "target": "h", "type": "forward"},
+      {"source": "w1", "target": "h", "type": "forward"},
+      {"source": "h", "target": "a", "type": "forward"},
+      {"source": "a", "target": "y", "type": "forward"},
+      {"source": "w2", "target": "y", "type": "forward"},
+      {"source": "y", "target": "loss", "type": "forward"},
+      {"source": "loss", "target": "y", "type": "gradient"},
+      {"source": "y", "target": "a", "type": "gradient"},
+      {"source": "y", "target": "w2", "type": "gradient"},
+      {"source": "a", "target": "h", "type": "gradient"},
+      {"source": "h", "target": "w1", "type": "gradient"}
+    ]
+  }
+}
